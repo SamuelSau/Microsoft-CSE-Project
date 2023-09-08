@@ -26,7 +26,9 @@ class AssignmentForm(forms.Form):
     topic_explanation = forms.CharField(max_length=10000)
     programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.RadioSelect)
     
-    # note that you will need to 
+    # note that you will need to show this field if the user selects "other" for programming_language
     other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'}))
     constraints = forms.CharField(max_length=10000)
+    limit_to_uploaded = forms.BooleanField(required=True, widget=forms.CheckboxInput(attrs={'checked': 'checked'}))
+    uploaded_material = forms.FileField(required=False)
 
