@@ -1,42 +1,35 @@
-import React, { useState } from 'react';
-import './App.css';
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
 
 function App() {
-	const [message, setMessage] = useState('');
-	const [response, setResponse] = useState(null);
+  const [count, setCount] = useState(0)
 
-	const sendMessage = async () => {
-		try {
-			const res = await fetch(
-				'http://127.0.0.1:8000/QAgenerator/send_post_request/',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						// Include CSRF token if necessary
-					},
-					body: JSON.stringify({ message }),
-				}
-			);
-			const data = await res.json();
-			const messageContent = data.choices[0].message.content;
-			setResponse(messageContent);
-		} catch (error) {
-			console.error('Error:', error);
-		}
-	};
-
-	return (
-		<div>
-			<input
-				type='text'
-				value={message}
-				onChange={(e) => setMessage(e.target.value)}
-			/>
-			<button onClick={sendMessage}>Send</button>
-			{response && <div>{response}</div>}
-		</div>
-	);
+  return (
+    <>
+      <div>
+        <a href="https://vitejs.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.jsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  )
 }
 
-export default App;
+export default App
