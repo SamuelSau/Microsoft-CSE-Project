@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+{% load custom_filters %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Results</title>
+</head>
+<body>
+    <h1>Generated Results:</h1>
+
+    {% for question in response.choices.0.message.content|split_questions %}
+        <div>
+            {{ question }}
+        </div>
+        <br>
+    {% endfor %}
+
+    <a href="{% url 'home' %}">Go back to home</a>
+</body>
+</html>
