@@ -9,14 +9,26 @@
     <title>Generated Results</title>
 </head>
 <body>
-    <h1>Generated Results:</h1>
+    <h1>Quiz:</h1>
 
-    {% for question in response.choices.0.message.content|split_questions %}
-        <div>
-            {{ question }}
-        </div>
-        <br>
-    {% endfor %}
+    <div>
+        {{response.choices.0.message.content}}
+    </div>
+
+    <h2>Modify the Quiz</h2>
+    <form method="post" action="{% url 'modify_quiz' %}">
+        {% csrf_token %}
+        <textarea name="modifications" rows="10" cols="50" placeholder="Enter modifications here..."></textarea><br>
+        <input type="hidden" name="original_quiz" value="{{ original_quiz }}">
+        <input type="submit" value="Modify Quiz">
+    </form>
+
+
+    <h1>Answer Key:</h1>
+
+    <div>
+        {{answer_key.choices.0.message.content}}
+    </div>
 
     <a href="{% url 'home' %}">Go back to home</a>
 </body>
