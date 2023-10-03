@@ -47,3 +47,21 @@ class AssignmentForm(forms.Form):
     # limit_to_uploaded = forms.BooleanField(required=True)
     # uploaded_material = forms.FileField(required=False)
 
+
+class NoCodeQuizForm(forms.Form):
+
+    DIFFICULTY_CHOICES =(
+        ("elementary", "Elementary"),
+        ("intermediate", "Intermediate"),
+        ("advanced", "Advanced"),
+    )
+    Q_STYLE_CHOICES = (
+        ("multiple_choice", "Multiple Choice"),
+        ("short_answer", "Short Answer"),
+        ("both", "Multiple Choice and Short Answer"),
+    )
+
+    topic_explanation = forms.CharField(max_length=10000)
+    difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.RadioSelect)
+    num_questions = forms.IntegerField(min_value=1, max_value=100)
+    question_style = forms.ChoiceField(choices=Q_STYLE_CHOICES, widget=forms.RadioSelect)
