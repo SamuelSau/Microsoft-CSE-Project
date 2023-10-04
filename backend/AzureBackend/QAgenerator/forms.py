@@ -24,6 +24,8 @@ class QuizForm(forms.Form):
         ("code_writing", "Code Writing"),
 
     )
+
+
     topic_explanation = forms.CharField(max_length=10000)
     programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.RadioSelect)
     other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'}))
@@ -32,6 +34,11 @@ class QuizForm(forms.Form):
     num_questions = forms.IntegerField(min_value=1, max_value=100)
     question_type = forms.MultipleChoiceField(choices=Q_TYPE_CHOICES, widget=forms.CheckboxSelectMultiple)
     question_style = forms.ChoiceField(choices=Q_STYLE_CHOICES, widget=forms.RadioSelect)
+
+    total_points = forms.IntegerField(min_value=1, max_value=100)
+    fixed_points_per_question = forms.BooleanField(required=False)
+
+
     # limit_to_uploaded = forms.BooleanField(required=True)
     # uploaded_material = forms.FileField(required=False)
 
@@ -58,7 +65,7 @@ class NoCodeQuizForm(forms.Form):
     Q_STYLE_CHOICES = (
         ("multiple_choice", "Multiple Choice"),
         ("short_answer", "Short Answer"),
-        ("both", "Multiple Choice and Short Answer"),
+        ("short_answer_and_multiple_choice", "Multiple Choice and Short Answer"),
     )
 
     topic_explanation = forms.CharField(max_length=10000)

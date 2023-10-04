@@ -41,7 +41,7 @@ def get_quiz_answer_key(response):
     data = {
         "messages": [
             {"role": "system", "content": "You are a highly skilled TA that grades quizzes and assignments for educators."},
-            {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. Provide consice explanations.\nThe quiz is as follows:\n" + quiz}
+            {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe quiz is as follows:\n" + quiz}
         ]
     }
 
@@ -132,6 +132,7 @@ def turn_to_html(quiz, answer_key):
 
 
 def no_code_quiz_form(request):
+    html = ""
     if request.method == "POST":
         form = NoCodeQuizForm(request.POST, request.FILES)
         if form.is_valid():
@@ -145,7 +146,7 @@ def no_code_quiz_form(request):
             elif data['difficulty_level'] == 'advanced':
                 user_message+= " The questions should be complex and require a lot of thought."
             
-            if data['question_style'] == 'short_answer' or data['question_style'] == 'both':
+            if data['question_style'] == 'short_answer' or data['question_style'] == 'short_answer_and_multiple_choice':
                 user_message+= " The types of short answer style questions present in the quiz are ones that challenge the student to elaborate on their answer so that it is clear they understand the answer. These can include fill in the blank, short response, etc."
             
 
@@ -155,7 +156,7 @@ def no_code_quiz_form(request):
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
 
-            html = turn_to_html(response['choices'][0]['message']['content'], answer_key['choices'][0]['message']['content'])
+            # html = turn_to_html(response['choices'][0]['message']['content'], answer_key['choices'][0]['message']['content'])
 
             return render(request, 'results.html', {"response": response, "answer_key": answer_key, "original_quiz": response['choices'][0]['message']['content'], "html": html})
     else:
@@ -164,6 +165,7 @@ def no_code_quiz_form(request):
 
 
 def quiz_form(request):
+    html = ""
     if request.method == "POST":
         form = QuizForm(request.POST, request.FILES)
         if form.is_valid():
@@ -198,14 +200,21 @@ def quiz_form(request):
                             What is the value of f(3)?
                         """
                 user_message+= " The questions should be complex and require a lot of thought. An example of an advanced question would be: " + hard_q
-            
+
+
             if data['programming_language'] == 'other':
                 user_message += f" The specified language is {data['other_language']}."
             
-            if data['question_style'] == 'short_answer' or data['question_style'] == 'both':
+            if data['question_style'] == 'short_answer' or data['question_style'] == 'short_answer_and_multiple_choice':
                 user_message+= " There are two types of short answer style questions present in the quiz. The first is questions that give the student a very small snippet of code in the language selected and they must respond with what it will output. The second is questions that ask for a very small snippet of code in the language that fulfils a request."
             
-
+            user_message+= f"\nThis quiz will be graded for a total of {data['total_points']} points. Please show the total points at the top of the quiz."
+            if data['fixed_points_per_question']:
+                user_message+= " Each question will be worth the same amount of points."
+            else:
+                user_message+= " Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
+            user_message+= "Please include the number of points each question is worth in the question itself. For example, 'Question 1 (5 Points)'."
+            
             user_message+= "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz."
             user_message+= "\n Double check all questions including the code snippets to ensure that they are correct."
             
@@ -213,7 +222,7 @@ def quiz_form(request):
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
 
-            html = turn_to_html(response['choices'][0]['message']['content'], answer_key['choices'][0]['message']['content'])
+            # html = turn_to_html(response['choices'][0]['message']['content'], answer_key['choices'][0]['message']['content'])
 
             return render(request, 'results.html', {"response": response, "answer_key": answer_key, "original_quiz": response['choices'][0]['message']['content'], "html": html})
     else:
@@ -221,6 +230,7 @@ def quiz_form(request):
     return render(request, 'quiz_form.html', {"form": form})
 
 def modify_quiz(request):
+    html = ""
     if request.method == "POST":
         original_quiz = request.POST['original_quiz']
         modifications = request.POST['modifications']
@@ -228,12 +238,12 @@ def modify_quiz(request):
         # Concatenate the original request with modifications
         new_request = "Given the following quiz:" + original_quiz + "\nPlease make the following modifications, but keep absolutely everything else the same except for the question numbers(if questions are removed).\nModifications:" + modifications
 
-        new_request+= "\nIn regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz."
+        new_request+= "\nIn regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax) (5 Points)', just say 'Question 1 (5 Points)'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz."
 
         response = send_message_to_openai(new_request)
         answer_key = get_quiz_answer_key(response)
         
-        html = turn_to_html(response['choices'][0]['message']['content'], answer_key['choices'][0]['message']['content'])
+        # html = turn_to_html(response['choices'][0]['message']['content'], answer_key['choices'][0]['message']['content'])
 
         return render(request, 'results.html', {"response": response, "answer_key": answer_key, "original_quiz": response['choices'][0]['message']['content'], "html": html})
 

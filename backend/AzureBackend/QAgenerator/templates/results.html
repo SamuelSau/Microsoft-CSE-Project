@@ -1,19 +1,52 @@
 <!DOCTYPE html>
-{% load custom_filters %}
+{% load custom_filters %} <!-- Load your custom filters -->
 
 <html lang="en">
-<!-- <head>
+<head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated Results</title>
+    <!-- Additional styling for code snippets -->
+    <style>
+        code {
+            background-color: #f8f8f8;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+        }
+        pre {
+            padding: 5px;
+            background-color: #f8f8f8;
+            border-radius: 3px;
+        }
+        .answer {
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+        .answer span {
+            color: grey;
+        }
+    </style>
+    
 </head>
 <body>
-    <h1>Quiz:</h1>
+    <!-- ... -->
 
+    <h1>Quiz:</h1>
     <div>
-        {{response.choices.0.message.content}}
+        {{response.choices.0.message.content|format_quiz|safe}}
     </div>
+    
+    <h1>Answer Key:</h1>
+    <div>
+        {{answer_key.choices.0.message.content|format_answer_key|safe}}
+    </div>
+    
+    <!-- ... -->
 
     <h2>Modify the Quiz</h2>
     <form method="post" action="{% url 'modify_quiz' %}">
@@ -22,26 +55,7 @@
         <input type="hidden" name="original_quiz" value="{{ original_quiz }}">
         <input type="submit" value="Modify Quiz">
     </form>
-
-
-    <h1>Answer Key:</h1>
-
-    <div>
-        {{answer_key.choices.0.message.content}}
-    </div> -->
-
-    {{html|safe}}
 
     <a href="{% url 'home' %}">Go back to home</a>
-
-    <h2>Modify the Quiz</h2>
-    <form method="post" action="{% url 'modify_quiz' %}">
-        {% csrf_token %}
-        <textarea name="modifications" rows="10" cols="50" placeholder="Enter modifications here..."></textarea><br>
-        <input type="hidden" name="original_quiz" value="{{ original_quiz }}">
-        <input type="submit" value="Modify Quiz">
-    </form>
-
-    
 </body>
 </html>
