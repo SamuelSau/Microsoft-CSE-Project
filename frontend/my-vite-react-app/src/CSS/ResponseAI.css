@@ -1,0 +1,22 @@
+.response-container {
+	padding: 20px;
+	border: 1px solid #e2e2e2;
+	border-radius: 10px;
+	background-color: #f9f9f9;
+}
+
+h3 {
+	margin-bottom: 15px;
+}
+
+p {
+	white-space: pre-wrap;
+}
+
+.scrollable-content {
+	max-height: calc(
+		100% - 40px
+	); /* Adjust this value, the subtraction accounts for the header or any padding you might have */
+	overflow-y: auto;
+	padding: 10px; /* Optional, for some space around your text */
+}
