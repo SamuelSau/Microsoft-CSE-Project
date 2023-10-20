@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+{% load custom_filters %} <!-- Load your custom filters -->
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Results</title>
+    <!-- Additional styling for code snippets -->
+    <style>
+        code {
+            background-color: #f8f8f8;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+        }
+        pre {
+            padding: 5px;
+            background-color: #f8f8f8;
+            border-radius: 3px;
+        }
+        .answer {
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+        .answer span {
+            color: grey;
+        }
+    </style>
+    
+</head>
+<body>
+    <!-- ... -->
+
+    <h1>Quiz Variations:</h1>
+    <div>
+        {{response.choices.0.message.content|format_quiz|safe}}
+    </div>
+
+    <a href="{% url 'home' %}">Go back to home</a>
+</body>
+</html>

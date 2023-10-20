@@ -79,6 +79,10 @@ class NoCodeQuizForm(forms.Form):
     difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.RadioSelect)
     num_questions = forms.IntegerField(min_value=1, max_value=100)
     question_style = forms.ChoiceField(choices=Q_STYLE_CHOICES, widget=forms.RadioSelect)
-    
     limit_to_uploaded = forms.BooleanField(required=False, label="Limit to uploaded material?")
     uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")
+
+class QuizRefineryForm(forms.Form):
+    num_variations = forms.IntegerField(min_value=1, max_value=10)
+    upload_file = forms.FileField(required=False)
+    

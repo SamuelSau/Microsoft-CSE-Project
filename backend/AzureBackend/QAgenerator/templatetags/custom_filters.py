@@ -12,14 +12,17 @@ def format_quiz(text_block):
     for block in code_blocks:
         formatted_block = f"<pre><code>{block}</code></pre>"
         text_block = text_block.replace(f'```{block}```', formatted_block)
+
+    # Replace Variations header with HTML tags for styling
+    variation_headers = re.findall(r'Variation \d+:', text_block)
+    for header in variation_headers:
+        text_block = text_block.replace(header, f"<h2>{header}</h2>")
+
     
     # Replace Questions and Answers headers with HTML tags for styling
     text_block = text_block.replace("Quiz:", "<h2>Quiz:</h2>").replace("Question", "<p><strong>Question</strong>")
     text_block = text_block.replace("Answer Key:", "<h2>Answer Key:</h2>").replace("Answer:", "<p><strong>Answer:</strong>")
-    
-    # Your additional formatting logic goes here.
-    # ...
-    
+
     return text_block
 
 @register.filter

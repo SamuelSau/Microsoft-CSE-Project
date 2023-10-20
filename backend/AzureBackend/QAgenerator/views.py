@@ -62,7 +62,8 @@ def get_quiz_answer_key(response):
     data = {
         "messages": [
             {"role": "system", "content": "You are a highly skilled TA that grades quizzes and assignments for educators."},
-            {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe quiz is as follows:\n" + quiz}
+            {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe quiz is as follows:\n" + quiz},
+            {"role": "assistant", "content": "Here is the answer key for the quiz, with each answer showing the number of points per question:"}
         ]
     }
 
