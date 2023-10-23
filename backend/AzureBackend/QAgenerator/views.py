@@ -3,7 +3,28 @@ from QAgenerator.forms import QuizForm, AssignmentForm, NoCodeQuizForm
 import requests
 from decouple import config
 from django.shortcuts import redirect
+import PyPDF2
+from pptx import Presentation
+import json 
+import spacy 
+import nltk
+from nltk.tokenize import word_tokenize
 
+nltk.download('punkt')
+
+def limit_tokens_in_string(text, max_tokens):
+    tokens = word_tokenize(text)
+    
+    # If the number of tokens is below the maximum limit, return the original text
+    if len(tokens) <= max_tokens:
+        return text
+    
+    # Otherwise, return the truncated text
+    truncated_tokens = tokens[:max_tokens]
+    return ' '.join(truncated_tokens)
+
+
+#nlp = spacy.load("en_core_web_sm")
 
 SECRET_KEY1 = config("SECRET_KEY1")
 SECRET_KEY2 = config("SECRET_KEY2")
@@ -137,8 +158,19 @@ def no_code_quiz_form(request):
         form = NoCodeQuizForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
+            
+            user_message = ""
+            if 'uploaded_material' in request.FILES:
+                uploaded_file = data['uploaded_material']
+                entities = extract_content_from_file(uploaded_file)
+                file_data = "".join(map(str, entities))
+                file_data = limit_tokens_in_string(file_data,4500) +"\n"
+                user_message = "Attatched is a chunked form of a document submitted by a professor:\n" + file_data
+                user_message += "\n\n Using this chunked data only consider the matierial that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a quiz."
+                
+            user_message += ".\n"
 
-            user_message = f"Write a {data['difficulty_level']} difficulty level quiz with exactly {data['num_questions']} questions, do not go over this number. The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of the topic and complexities behind the question. The topics for this quiz are {data['topic_explanation']}, so ensure that each topic is covered in the quiz. The difficulty level of the quiz should be {data['difficulty_level']}."
+            user_message += f"Write a {data['difficulty_level']} difficulty level quiz with exactly {data['num_questions']} questions, do not go over this number. The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of the topic and complexities behind the question. The topics for this quiz are {data['topic_explanation']}, so ensure that each topic is covered in the quiz. The difficulty level of the quiz should be {data['difficulty_level']}."
             if data['difficulty_level'] == 'elementary':
                 user_message+= " The questions should be simple and straightforward."
             elif data['difficulty_level'] == 'intermediate':
@@ -153,6 +185,7 @@ def no_code_quiz_form(request):
             user_message+= "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz. Do not include the answer key."
             user_message+= "\n Double check all questions to ensure that they are correct."
             
+
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
 
@@ -164,14 +197,28 @@ def no_code_quiz_form(request):
     return render(request, 'quiz_form.html', {"form": form})
 
 
+
+
 def quiz_form(request):
     html = ""
     if request.method == "POST":
         form = QuizForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
-
-            user_message = f"Write a coding quiz in the programming language {data['programming_language']} with exactly {data['num_questions']} questions, do not go over this number. The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of syntax and logic. The topics for this quiz are {data['topic_explanation']}. So ensure that each topic is covered in the quiz. The type of questions that can be on this quiz are: {data['question_type']}. The difficulty level of the quiz should be {data['difficulty_level']}."
+            
+            user_message = ""
+            if 'uploaded_material' in request.FILES: 
+                uploaded_file = data['uploaded_material']
+                #topics_to_pick = data['topic_explanation']
+                entities = extract_content_from_file(uploaded_file)
+                file_data = "".join(map(str, entities))
+                file_data = limit_tokens_in_string(file_data,4500) +"\n"
+                user_message = "Attatched is a chunked form of a document submitted by a professor:\n" + file_data
+                user_message += "\n\n Using this chunked data only consider the matierial that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a quiz."
+                
+            user_message += ".\n"
+            
+            user_message += f"Write a coding quiz in the programming language {data['programming_language']} with exactly {data['num_questions']} questions, do not go over this number. The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of syntax and logic. The topics for this quiz are {data['topic_explanation']}. So ensure that each topic is covered in the quiz. The type of questions that can be on this quiz are: {data['question_type']}. The difficulty level of the quiz should be {data['difficulty_level']}."
             if data['difficulty_level'] == 'elementary':
                 easy_q = """def greet(name):
                                 return "Hello, " + name + "!"
@@ -218,6 +265,7 @@ def quiz_form(request):
             user_message+= "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz."
             user_message+= "\n Double check all questions including the code snippets to ensure that they are correct."
             
+              
 
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
@@ -256,7 +304,19 @@ def assignment_form(request):
         form = AssignmentForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
-            user_message = f"Generate an assignment on {data['topic_explanation']} in {data['programming_language']} language with the following constraints: {data['constraints']}."
+            
+            user_message = ""
+            if 'uploaded_material' in request.FILES:
+                uploaded_file = data['uploaded_material']
+                entities = extract_content_from_file(uploaded_file)
+                file_data = "".join(map(str, entities))
+                file_data = limit_tokens_in_string(file_data,4500) +"\n"
+                user_message = "Attatched is a chunked form of a document submitted by a professor:\n" + file_data
+                user_message += "\n\n Using this chunked data only consider the matierial that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a assignment."
+                
+            user_message += ".\n"
+            
+            user_message += f"Generate an assignment on {data['topic_explanation']} in {data['programming_language']} language with the following constraints: {data['constraints']}."
 
             if data['programming_language'] == 'other':
                 user_message += f" The specified language is {data['other_language']}."
@@ -268,3 +328,112 @@ def assignment_form(request):
     return render(request, 'assignment_form.html', {"form": form})
 
 
+def extract_content_from_file(uploaded_file):
+    content = ""
+
+    # Check the file extension
+    file_extension = uploaded_file.name.split('.')[-1].lower()
+
+    if file_extension == "pdf":
+        # Extract content from PDF
+        pdf_reader = PyPDF2.PdfReader(uploaded_file)
+        for page_num in range(len(pdf_reader.pages)):
+            content += pdf_reader.pages[page_num].extract_text() + "\n"
+
+    elif file_extension in ["ppt", "pptx"]:
+        # Extract content from PPT
+        presentation = Presentation(uploaded_file)
+        for slide in presentation.slides:
+            for shape in slide.shapes:
+                if hasattr(shape, "text"):
+                    content += shape.text + "\n"
+                    
+    entities = extract_entities_from_azure(content)
+
+    return entities
+
+def extract_entities_from_azure(text):
+        
+    SECRET_KEY3 = config("SECRET_KEY3")
+    endpoint = "https://usfcslangservice.cognitiveservices.azure.com/"
+    
+    entity_recognition_url = endpoint + "/text/analytics/v3.0/keyPhrases"
+    
+    headers = {
+        "Ocp-Apim-Subscription-Key": SECRET_KEY3,
+        "Content-Type": "application/json"
+    }
+    max_chars_per_document = 5120
+    chunks = [text[i:i + max_chars_per_document] for i in range(0, len(text), max_chars_per_document)]
+    
+    documents = [{"id": str(idx), "language": "en", "text": chunk} for idx, chunk in enumerate(chunks)]
+    
+
+    MAX_DOCS_PER_REQUEST = 5
+    responses = []
+    for i in range(0, len(documents), MAX_DOCS_PER_REQUEST):
+        batch = documents[i:i+MAX_DOCS_PER_REQUEST]
+        response = requests.post(entity_recognition_url, headers=headers, json={"documents": batch})
+        responses.extend(response.json().get('documents', []))
+
+    
+    all_entities = [doc.get('keyPhrases', []) for doc in responses]
+    
+      
+    return all_entities
+    
+def segment_text(text):
+    doc = text
+    
+    entities = []
+
+    #for entity in entities():
+    #    print(f"Entity: {entity.text}, Label: {entity.label_}")
+
+    sentences = [sent.string.strip() for sent in doc.sents]
+    
+    return sentences, entities
+
+def chunk_data(data, max_docs=1024, max_chars=5120):
+    chunks = []
+    current_chunk = []
+    current_chars = 0
+
+    for doc in data:
+        doc_length = len(doc)
+
+        if doc_length > max_chars:
+            raise ValueError(f"A document exceeds the maximum allowed characters of {max_chars}")
+
+        if current_chars + doc_length <= max_chars and len(current_chunk) < max_docs:
+            current_chunk.append(doc)
+            current_chars += doc_length
+        else:
+            chunks.append(current_chunk)
+            current_chunk = [doc]
+            current_chars = doc_length
+
+    if current_chunk:
+        chunks.append(current_chunk)
+
+    return chunks
+
+
+def chunk_list(lst, max_tokens):
+    """
+    Splits a list of strings into chunks where the sum of tokens in each chunk doesn't exceed max_tokens.
+    Returns a list of lists.
+    """
+    chunks = []
+    current_chunk = []
+    current_chunk_length = 0
+
+    for item in lst:
+        if current_chunk_length + len(item) <= max_tokens:
+            current_chunk.append(item.text)
+            current_chunk_length += len(item)
+        
+    if current_chunk:
+        chunks.append(current_chunk)
+    
+    return chunks

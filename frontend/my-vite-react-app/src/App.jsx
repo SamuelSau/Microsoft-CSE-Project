@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import './App.css';
+import FileUpload from './components/FileUpload.jsx';	
 
 function App() {
 	const [message, setMessage] = useState('');
 	const [response, setResponse] = useState(null);
+	const [selectedFile, setSelectedFile] = useState(null);
+
+	const handleFileSelect = (file) => {
+		setSelectedFile(file);
+	};
+
 
 	const sendMessage = async () => {
 		try {
@@ -28,6 +35,9 @@ function App() {
 
 	return (
 		<div>
+            <h2>Upload your lecture slides or notes:</h2>
+            <FileUpload onFileSelect={handleFileSelect} />	
+
 			<input
 				type='text'
 				value={message}
