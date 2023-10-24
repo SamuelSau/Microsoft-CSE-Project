@@ -2,22 +2,32 @@
 {% load custom_filters %}
 
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated Results</title>
-</head>
-<body>
-    <h1>Generated Results:</h1>
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Generated Results</title>
+	</head>
+	<body>
+		<h1>Generated Results:</h1>
 
-    {% for question in response.choices.0.message.content|split_questions %}
-        <div>
-            {{ question }}
-        </div>
-        <br>
-    {% endfor %}
-
-    <a href="{% url 'home' %}">Go back to home</a>
-</body>
+		{% for question in response.choices.0.message.content|split_questions %}
+		<div>{{ question }}</div>
+		<br />
+		{% endfor %}
+		<h2>Modify the Quiz</h2>
+		<form method="post" action="{% url 'modify_quiz' %}">
+			{% csrf_token %}
+			<textarea
+				name="modifications"
+				rows="10"
+				cols="50"
+				placeholder="Enter modifications here..."
+			></textarea
+			><br />
+			<input type="hidden" name="original_quiz" value="{{ original_quiz }}" />
+			<input type="submit" value="Modify Quiz" />
+		</form>
+		<a href="{% url 'home' %}">Go back to home</a>
+	</body>
 </html>

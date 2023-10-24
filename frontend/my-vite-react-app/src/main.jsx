@@ -4,6 +4,7 @@ import QuizForm from './Components/QuizForm';
 import AssignmentForm from './Components/AssignmentForm.jsx';
 import Homepage from './Components/HomePage';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import ResponseAI from './Components/ResponseAI';
 
 const router = createBrowserRouter([
 	{
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
 	{
 		path: '/quiz',
 		element: <QuizForm />,
+	},
+	{
+		path: '/response',
+		element: <ResponseAI />,
 	},
 ]);
 
