@@ -68,7 +68,7 @@ input[type='radio'] {
 	justify-content: space-between;
 	align-items: stretch;
 	border-radius: 10px;
-	background-color: #85AFEE;
+	background-color: #85afee;
 }
 
 .form-container,
@@ -264,18 +264,19 @@ input[type='radio'] {
 }
 
 .difficulty-flex-container {
-    height: 50px;
+	height: 50px;
 	padding: 0px 0px 15px 0;
 }
 
 .difficulty-flex-container select {
-    height: 30px;
-    width: 110px; /* Adjust the width as per your design requirement */
-    font-size: medium;
-    border-radius: 7px; /* Consistency with your previous design */
-    border: 1px solid #ccc;
+	height: 30px;
+	width: 110px; /* Adjust the width as per your design requirement */
+	font-size: medium;
+	border-radius: 7px; /* Consistency with your previous design */
+	border: 1px solid #ccc;
 }
 
-.question-type, .question-style {
+.question-type,
+.question-style {
 	padding: 10px 0px 10px 0px;
 }

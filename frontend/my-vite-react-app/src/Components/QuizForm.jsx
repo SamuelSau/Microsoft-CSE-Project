@@ -8,14 +8,14 @@ function QuizFormComponent() {
 	const navigate = useNavigate();
 
 	const [formData, setFormData] = useState({
-		difficulty_level: '',
-		topic_explanation: '',
-		programming_language: '',
-		num_questions: '',
-		question_type: [],
-		question_style: [],
+		difficulty_level: 'elementary',
+		topic_explanation: 'any generic concepts',
+		programming_language: 'python', // set default to python,
+		num_questions: '2',
+		question_type: ['code_analysis'],
+		question_style: ['multiple_choice'],
 		limit_to_uploaded: false,
-		total_points: '',
+		total_points: '1',
 	});
 
 	const [responseContent, setResponseContent] = useState('');
@@ -45,6 +45,7 @@ function QuizFormComponent() {
 	const [questionStyleOpen, setQuestionStyleOpen] = useState(false);
 
 	function handleCheckboxChange(event) {
+		event.preventDefault();
 		const { name, value } = event.target;
 
 		// Create a copy of the current form data
@@ -188,7 +189,7 @@ function QuizFormComponent() {
 							<div className='question-type'>
 								<label id='label-header'>Question Type(s):</label>
 								<div className='dropdown-container'>
-									<button
+									<button type="button"
 										onClick={() => setQuestionTypeOpen(!questionTypeOpen)}
 									>
 										Select Question Type(s)
@@ -224,7 +225,7 @@ function QuizFormComponent() {
 							<div className='question-style'>
 								<label id='label-header'>Question Style(s):</label>
 								<div className='dropdown-container'>
-									<button
+									<button type="button"
 										onClick={() => setQuestionStyleOpen(!questionStyleOpen)}
 									>
 										Select Question Style(s)
