@@ -195,10 +195,13 @@ def quiz_form(request):
     
     return JsonResponse({"message": "Method not allowed"}, status=405)
 
+@csrf_exempt
 def modify_quiz(request):
     if request.method == "POST":
-        original_quiz = request.POST['original_quiz']
-        modifications = request.POST['modifications']
+        #parse from the JSON that client sends
+        data = json.loads(request.body)
+        original_quiz = data['original_quiz']
+        modifications = data['modifications']
 
         # Concatenate the original request with modifications
         new_request = "Given the following quiz:" + original_quiz + "\nPlease make the following modifications, but keep absolutely everything else the same except for the question numbers(if questions are removed).\nModifications:" + modifications
@@ -210,10 +213,11 @@ def modify_quiz(request):
 
         return JsonResponse({
             "answer_key": answer_key['choices'][0]['message']['content'],
-            "original_quiz" : response['choices'][0]['message']['content']
+            "modified_quiz" : response['choices'][0]['message']['content']
         })
     return JsonResponse({"message": "Method not allowed"}, status=405)
 
+@ensure_csrf_cookie
 def assignment_form(request):
     if request.method == "POST":
         form = AssignmentForm(request.POST, request.FILES)

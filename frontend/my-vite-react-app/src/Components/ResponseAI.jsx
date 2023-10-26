@@ -9,6 +9,11 @@ function ResponseAI(props) {
 	const location = useLocation();
 	const [modifications, setModifications] = useState('');
 
+	const [modifiedFormData, setModifiedFormData] = useState({
+		original_quiz: '',
+		modifications: '',
+	});
+
 	// Before making the POST request
 	let csrfCookie = document.cookie
 		.split('; ')
@@ -19,31 +24,36 @@ function ResponseAI(props) {
 	const handleModify = async (e) => {
 		try {
 			e.preventDefault();
-			const data = new FormData();
-			for (const key in formData) {
-				data.append(key, formData[key]);
-			}
-
 			const response = await fetch(
 				'http://127.0.0.1:8000/QAgenerator/modify_quiz/',
 				{
 					method: 'POST',
 					headers: {
-						'Content-Type': 'multipart/form-data',
-						'X-CSRFToken': csrfToken, // Here's the important part!
+						'X-CSRFToken': csrfToken,
+						'Content-Type': 'application/json',
 					},
-					body: formData,
+					body: JSON.stringify(modifiedFormData),
 				}
 			);
 
-			const responseData = await response.json();
-			setOriginalQuiz(responseData.original_quiz); // Update the original quiz with the modified content
+			const responseData = await response.json();			
+			setOriginalQuiz(responseData.modified_quiz); // Update the original quiz with the modified content
 			setMessageContent(responseData.answer_key); // Update the answer key based on your state variable name
+			setQuizName(responseData?.response?.choices?.[0].message?.content.split('\n')[0]) //Update the Quiz name as well
 			setModifications(''); // Clear the textarea
 		} catch (error) {
 			console.error('Error modifying the quiz:', error);
+			
+
 		}
 	};
+
+	useEffect(() => {
+		setModifiedFormData({
+			original_quiz: originalQuiz,
+			modifications: modifications,
+		});
+	}, [originalQuiz, modifications]);
 
 	useEffect(() => {
 		const responseData = location.state?.responseData;
@@ -52,7 +62,6 @@ function ResponseAI(props) {
 		const originalQuizContent = responseData?.original_quiz;
 		const content = responseData?.response?.choices?.[0].message?.content;
 		const quizName = content.split('\n')[0];
-
 		if (answerKeyContent) {
 			setMessageContent(answerKeyContent);
 		}
