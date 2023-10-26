@@ -1,34 +1,78 @@
 from django import forms
 
 class QuizForm(forms.Form):
+    LANGUAGE_CHOICES = (("python", "Python"), ("java", "Java"), ("c", "C"), ("c++", "C++"), ("other", "Other"))
+
     DIFFICULTY_CHOICES =(
         ("elementary", "Elementary"),
-        ("middle", "Middle School"),
-        ("high", "High School"),
-        ("early_college", "Early College"),
-        ("adv_college", "Advanced College"),
+        ("intermediate", "Intermediate"),
+        ("advanced", "Advanced"),
     )
     Q_STYLE_CHOICES = (
         ("multiple_choice", "Multiple Choice"),
         ("short_answer", "Short Answer"),
-        ("both", "Multiple Choice and Short Answer"),
     )
-    topic_explanation = forms.CharField(max_length=10000)
-    difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.RadioSelect)
-    num_questions = forms.IntegerField(min_value=1, max_value=100)
-    question_style = forms.ChoiceField(choices=Q_STYLE_CHOICES, widget=forms.RadioSelect)
-    limit_to_uploaded = forms.BooleanField(required=True, widget=forms.CheckboxInput(attrs={'checked': 'checked'}))
-    uploaded_material = forms.FileField(required=False)
+    Q_TYPE_CHOICES = (
+        ("syntax", "Syntax"),
+        ("logic", "Logic"),
+        ("bug_fix", "Bug Fix"),
+        ("bug_identification", "Bug Identification"),
+        ("code_analysis", "Code Analysis"),
+        ("code_completion", "Code Completion"),
+        ("code_output", "Code Output"),
+        ("code_writing", "Code Writing"),
+    )
+
+    #Free form text
+    topic_explanation = forms.CharField(max_length=100, required=False)
+    
+    # Select dropdowns
+    programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select)
+    other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'})) #fill out if different language than what's shown
+
+    difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.Select)
+    num_questions = forms.IntegerField(min_value=1, max_value=50)
+    
+    total_points = forms.IntegerField(min_value=1, max_value=100)
+    fixed_points_per_question = forms.BooleanField(required=False)
+
+    #Multi-select dropdowns
+    question_type = forms.MultipleChoiceField(choices=Q_TYPE_CHOICES, widget=forms.SelectMultiple)
+    question_style = forms.MultipleChoiceField(choices=Q_STYLE_CHOICES, widget=forms.SelectMultiple)
+    limit_to_uploaded = forms.BooleanField(required=False, label="Limit to uploaded material?")
+    uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")
 
 class AssignmentForm(forms.Form):
     LANGUAGE_CHOICES = (("python", "Python"), ("java", "Java"), ("c", "C"), ("c++", "C++"), ("other", "Other"))
 
-    topic_explanation = forms.CharField(max_length=10000)
-    programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.RadioSelect)
+    topic_explanation = forms.CharField(max_length=100)
+    programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select)
     
-    # note that you will need to show this field if the user selects "other" for programming_language
     other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'}))
+    
     constraints = forms.CharField(max_length=10000)
-    limit_to_uploaded = forms.BooleanField(required=True, widget=forms.CheckboxInput(attrs={'checked': 'checked'}))
-    uploaded_material = forms.FileField(required=False)
+    limit_to_uploaded = forms.BooleanField(required=False, label="Limit to uploaded material?")
+    uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")
 
+class NoCodeQuizForm(forms.Form):
+
+    DIFFICULTY_CHOICES =(
+        ("elementary", "Elementary"),
+        ("intermediate", "Intermediate"),
+        ("advanced", "Advanced"),
+    )
+    Q_STYLE_CHOICES = (
+        ("multiple_choice", "Multiple Choice"),
+        ("short_answer", "Short Answer"),
+        ("short_answer_and_multiple_choice", "Multiple Choice and Short Answer"),
+    )
+
+    topic_explanation = forms.CharField(max_length=10000, required=False)
+    difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.Select)
+    num_questions = forms.IntegerField(min_value=1, max_value=50)
+
+    #Multiselect dropdown
+    question_style = forms.MultipleChoiceField(choices=Q_STYLE_CHOICES, widget=forms.SelectMultiple)
+    
+    limit_to_uploaded = forms.BooleanField(required=False, label="Limit to uploaded material?")
+    uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")

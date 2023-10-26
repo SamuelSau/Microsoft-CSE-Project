@@ -1,0 +1,282 @@
+* {
+	margin: 0;
+	padding: 0;
+	font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+		Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,
+		Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+}
+
+.form-container h1 {
+	text-align: center;
+	color: #106aac;
+}
+
+.quiz-form-container {
+	max-width: 600px;
+	padding: 20px;
+	background-color: #ffffff;
+	border: 1px solid #e2e2e2;
+	border-radius: 10px;
+}
+
+.quiz-form-group {
+	margin-bottom: 0px;
+}
+
+label {
+	display: block;
+	margin-bottom: 8px;
+}
+
+textarea {
+	width: 100%;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	resize: vertical;
+	min-height: 80px;
+}
+
+input[type='text'],
+input[type='file'] {
+	width: 100%;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	margin-bottom: 20px;
+}
+
+input[type='radio'] {
+	margin-right: 8px;
+}
+
+#quizSubmitButton {
+	padding: 10px 20px;
+	background-color: #56aee9;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+#quizSubmitButton:hover {
+	background-color: #25476b;
+}
+
+.quiz-ai-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: stretch;
+	border-radius: 10px;
+	background-color: #85afee;
+}
+
+.form-container,
+.response-section {
+	flex: 0 0 45%; /* takes 48% width, adjust as needed */
+	box-sizing: border-box; /* This ensures padding and border are included in the width */
+	margin: 20px auto;
+}
+
+.quiz-response-section {
+	height: 400px; /* You can adjust this value */
+	overflow-y: auto;
+}
+
+.quiz-language-group .language-options {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: nowrap; /* Prevent wrapping onto the next line */
+}
+
+.quiz-language-group .language-option {
+	margin-right: 20px; /* Spacing between each radio option */
+}
+
+.quiz-language-group .language-option:last-child {
+	margin-right: 0; /* Remove margin for the last option */
+}
+
+.back-to-homepage {
+	position: absolute;
+	bottom: 20px;
+	right: 20px;
+	text-decoration: none;
+	color: #007fff;
+	font-weight: bold;
+	background-color: #f9f9f9;
+	padding: 5px 10px;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+}
+
+.back-to-homepage:hover {
+	background-color: #e2e2e2;
+}
+
+.back-to-homepage {
+	position: absolute;
+	bottom: 20px;
+	right: 20px;
+	text-decoration: none;
+	color: #007fff;
+	font-weight: bold;
+	background-color: #f9f9f9;
+	padding: 5px 10px;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+}
+
+.back-to-homepage:hover {
+	background-color: #e2e2e2;
+}
+
+.flex-container {
+	display: flex;
+	flex-wrap: wrap; /* Allow wrapping */
+	justify-content: space-between; /* Evenly space items */
+}
+
+.flex-container label {
+	flex-basis: calc(
+		25% - 10px
+	); /* Occupy roughly 1/4 of the container width, minus a little for margin */
+	margin: 5px; /* Space items out a bit */
+}
+
+#label-header {
+	font-weight: bold;
+}
+
+#submitButton {
+	padding: 10px 20px;
+	background-color: #56aee9;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+#submitButton:hover {
+	background-color: #25476b;
+}
+
+.dropdown-container {
+	position: relative;
+	display: inline-block;
+}
+
+.dropdown-menu {
+	display: block;
+	position: absolute;
+	background-color: #f9f9f9;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 1;
+}
+
+.dropdown-menu label {
+	color: black;
+	padding: 12px 16px;
+	display: block;
+}
+
+.dropdown-menu label:hover {
+	background-color: #ddd;
+}
+
+.quiz-upload-container {
+	display: flex;
+	justify-content: space-between; /* Optional: Add some space between the divs */
+	align-items: center; /* This will vertically align the divs in case they have different heights */
+}
+
+.upload-material {
+	display: flex;
+	flex-direction: column; /* Stack the children vertically */
+}
+
+.custom-upload-button {
+	display: flex;
+	margin: 0 auto;
+	padding: 10px 15px;
+	cursor: pointer;
+	background-color: #f5f5f5;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+	width: 100px;
+	align-items: center;
+	justify-content: center;
+
+	/* Optional: hover effect */
+	&:hover {
+		background-color: #e0e0e0;
+	}
+}
+
+.upload-icon {
+	width: 20px; /* or any desired width */
+	height: 20px; /* or any desired height, keeping in mind the aspect ratio */
+	display: block;
+	margin: 0 auto;
+}
+
+.block-display {
+	display: block;
+}
+
+.block-display input {
+	display: block;
+	margin-top: 10px; /* add some spacing between the label and input */
+}
+
+.quiz-input {
+	width: 110px;
+	height: 30px;
+	font-size: medium;
+	border-radius: 7px;
+}
+
+.language-flex-container {
+	display: flex;
+	align-items: center;
+	gap: 20px; /* Add some space between the dropdown and the input */
+	height: 50px;
+}
+
+.language-flex-container select {
+	height: 30px;
+	width: 110px;
+	font-size: medium;
+	border-radius: 7px;
+}
+.other-language {
+	height: 30px;
+	width: 150px;
+	font-size: medium;
+	flex: 1; /* This will make the input take up the available space next to the dropdown */
+	padding: 8px;
+	border-radius: 7px;
+	border: 1px solid #ccc;
+}
+
+.difficulty-flex-container {
+	height: 50px;
+	padding: 0px 0px 15px 0;
+}
+
+.difficulty-flex-container select {
+	height: 30px;
+	width: 110px; /* Adjust the width as per your design requirement */
+	font-size: medium;
+	border-radius: 7px; /* Consistency with your previous design */
+	border: 1px solid #ccc;
+}
+
+.question-type,
+.question-style {
+	padding: 10px 0px 10px 0px;
+}
