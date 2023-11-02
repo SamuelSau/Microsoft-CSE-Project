@@ -9,10 +9,9 @@
     background-color: #f9f9f9;
     display: flex;
     justify-content: space-between;
-    /*gap: 25px; */
-	height: 90vh;  /* Adjust as needed */
-    width: 90vw;   /* Adjust as needed */
-    margin: 5vh auto; /* Centers the container */
+	height: 95vh;  /* Adjust as needed */
+    width: 80vw;   /* Adjust as needed */
+    margin: auto; /* Centers the container */
     overflow: hidden; /* This prevents any accidental overflow from the container itself */
 }
 
@@ -20,7 +19,7 @@
     flex: 1;
     min-width: calc(50% - 10px);  /* Minus half of the gap value */
     overflow-y: auto; /* Makes them independently scrollable */
-    max-height: calc(100% - 30px); /* Adjust this value based on the total header size and padding */
+    max-height: calc(100% - 20px); /* Adjust this value based on the total header size and padding */
     padding: 10px; /* Optional, for some space around your text */
 	box-sizing: border-box; /* Ensure padding and border are included in the height and width */
 	color: gray;
@@ -29,7 +28,6 @@
 .answers {
 	background-color: #D0E0F8;
 }
-
 
 h1 {
     margin-bottom: 10px;
@@ -59,8 +57,8 @@ pre {
 
 .modify-button {
     position: absolute;
-    bottom: 10px;
-    right: 10px;
+    bottom: 5px;
+    right: 0px;
     background-color: rgb(67, 174, 209);
     color: white;
     border: none;
@@ -74,7 +72,36 @@ pre {
     background-color: #3e8fe0; /* A darker shade of blue for hover */
 }
 
+.download-material {
+	display: flex;
+	flex-direction: column; /* Stack the children vertically */
+}
 
+.custom-download-button {
+	display: flex;
+	margin: 0 auto;
+	padding: 10px 15px;
+	cursor: pointer;
+	background-color: #f5f5f5;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+	width: 100px;
+	align-items: center;
+	justify-content: center;
+
+	/* Optional: hover effect */
+	&:hover {
+		background-color: #e0e0e0;
+	}
+}
+
+.download-icon {
+	width: 20px; /* or any desired width */
+	height: 20px; /* or any desired height, keeping in mind the aspect ratio */
+	display: block;
+	margin: 0 auto;
+}
 
 
 

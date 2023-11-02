@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import '../CSS/QuizForm.css';
-import ResponseAI from './ResponseAI';
 import { Link, useNavigate } from 'react-router-dom';
+import { Tooltip } from 'react-tooltip';
 
 function QuizFormComponent() {
 	const navigate = useNavigate();
+	const [responseContent, setResponseContent] = useState('');
+	const [questionTypeOpen, setQuestionTypeOpen] = useState(false);
+	const [questionStyleOpen, setQuestionStyleOpen] = useState(false);
+
+	const [errorMessage, setErrorMessage] = useState(null);
 
 	const [formData, setFormData] = useState({
 		difficulty_level: 'elementary',
-		topic_explanation: 'any generic concepts',
+		topic_explanation: '',
 		programming_language: 'python', // set default to python,
-		num_questions: '2',
-		question_type: ['code_analysis'],
-		question_style: ['multiple_choice'],
+		num_questions: '',
+		question_type: [],
+		question_style: [],
 		limit_to_uploaded: false,
-		total_points: '1',
+		total_points: '',
 	});
-
-	const [responseContent, setResponseContent] = useState('');
 
 	// Before making the POST request
 	let csrfCookie = document.cookie
@@ -26,12 +29,10 @@ function QuizFormComponent() {
 		.find((row) => row.startsWith('csrftoken='));
 
 	const csrfToken = csrfCookie ? csrfCookie.split('=')[1] : null;
-	
-	const [response, setResponse] = useState(null);
-	const [errors, setErrors] = useState(null);
 
 	const handleChange = (e) => {
 		const { name, type, value, files } = e.target;
+
 		if (type === 'file') {
 			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
 		} else if (type === 'checkbox') {
@@ -41,11 +42,8 @@ function QuizFormComponent() {
 		}
 	};
 
-	const [questionTypeOpen, setQuestionTypeOpen] = useState(false);
-	const [questionStyleOpen, setQuestionStyleOpen] = useState(false);
-
 	function handleCheckboxChange(event) {
-		event.preventDefault();
+
 		const { name, value } = event.target;
 
 		// Create a copy of the current form data
@@ -66,12 +64,50 @@ function QuizFormComponent() {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		// Validation check for uploading file
+		if (formData.limit_to_uploaded && !formData.uploaded_material) {
+			// setErrorMessage(
+			// 	"You must upload a file when 'Limit to Uploaded' is checked."
+			// );
+			alert(
+				"You must upload a file when 'Limit to Uploaded' is checked.\nUncheck if you do not want to upload a file"
+			);
+			return; // This stops the execution of the handleSubmit function
+		} else {
+			setErrorMessage(null); // Reset any previous error messages
+		}
+
+		// Validatation for number_of_questions
+		const numberOfQuestions = parseInt(formData.num_questions);
+		if (
+			isNaN(numberOfQuestions) ||
+			numberOfQuestions < 1 ||
+			numberOfQuestions > 50
+		) {
+			alert(
+				'Please enter a valid positive integer as a minimum of 1 question to maximum of 50 questions'
+			);
+			return;
+		}
+
 		const data = new FormData();
 		for (const key in formData) {
 			data.append(key, formData[key]);
 		}
+		let endpoint = '/quiz_form/'; // default endpoint
+
+		//Update formData when we don't have a programming language and question type for no_code_quiz_form function
+		if (formData.programming_language === 'no specific language') {
+			endpoint = '/no_code_quiz_form/';
+			delete formData.programming_language;
+			delete formData.question_type;
+		}
+
+		console.log(data);
+
 		axios
-			.post('http://127.0.0.1:8000/QAgenerator/quiz_form/', data, {
+			.post(`http://127.0.0.1:8000/QAgenerator${endpoint}`, data, {
 				headers: {
 					'X-CSRFToken': csrfToken,
 					'Content-Type': 'multipart/form-data',
@@ -107,8 +143,13 @@ function QuizFormComponent() {
 						<h1>Quiz Form</h1>
 						<form onSubmit={handleSubmit}>
 							<div className='quiz-upload-container'>
-								<label id='label-header' className='block-display'>
-									Quiz Length:
+								<label
+									data-tooltip-id='label-tooltip'
+									data-tooltip-content='Specify number of questions from 1 as minimum to 50 as maximum'
+									id='label-header'
+									className='block-display'
+								>
+									Question Count:
 									<input
 										type='number'
 										name='num_questions'
@@ -117,10 +158,19 @@ function QuizFormComponent() {
 										value={formData.num_questions}
 										onChange={handleChange}
 										className='quiz-input'
+										placeholder='1-50'
 									/>
 								</label>
+								{/* Tooltip Component */}
+								<Tooltip id='label-tooltip' />
 								<div className='upload-material'>
-									<label id='label-header'>Uploaded Material:</label>
+									<label
+										id='label-header'
+										data-tooltip-id='label-tooltip-upload'
+										data-tooltip-content='Upload pdfs up to 5 MB'
+									>
+										Uploaded Material:
+									</label>
 									<input
 										type='file'
 										id='uploaded_material' // Add an ID to associate with the label
@@ -128,6 +178,7 @@ function QuizFormComponent() {
 										onChange={handleChange}
 										style={{ display: 'none' }} // Hide the default input
 									/>
+									<Tooltip id='label-tooltip-upload' />
 									<label
 										htmlFor='uploaded_material'
 										className='custom-upload-button'
@@ -142,7 +193,15 @@ function QuizFormComponent() {
 							</div>
 
 							<div className='programming-languages'>
-								<label id='label-header'>Programming Language:</label>
+								<label id='label-header'>
+									<span
+										data-tooltip-id='label-tooltip-language'
+										data-tooltip-content='Select 1 programming language'
+									>
+										Programming Language:
+									</span>
+								</label>
+								<Tooltip id='label-tooltip-language' />
 								<div className='language-flex-container'>
 									<select
 										name='programming_language'
@@ -154,6 +213,7 @@ function QuizFormComponent() {
 											['java', 'Java'],
 											['c', 'C'],
 											['other', 'Other'],
+											['no specific language', 'No specific language'],
 										].map(([value, label]) => (
 											<option key={value} value={value}>
 												{label}
@@ -166,7 +226,7 @@ function QuizFormComponent() {
 											type='text'
 											placeholder='Enter language'
 											name='other_programming_language'
-											value={formData.other_programming_language || ''}
+											//value={formData.programming_language}
 											onChange={handleChange}
 											className='other-language'
 										/>
@@ -175,7 +235,16 @@ function QuizFormComponent() {
 							</div>
 
 							<div class='difficulty-flex-container'>
-								<label id='label-header'>Difficulty Level:</label>
+								<label id='label-header'>
+									<span
+										data-tooltip-id='label-tooltip-diff'
+										data-tooltip-content='Select 1 difficulty level 
+									'
+									>
+										Difficulty Level:
+									</span>
+								</label>
+								<Tooltip id='label-tooltip-diff' />
 								<select
 									name='difficulty_level'
 									value={formData.difficulty_level}
@@ -186,46 +255,66 @@ function QuizFormComponent() {
 									<option value='advanced'>Advanced</option>
 								</select>
 							</div>
-							<div className='question-type'>
-								<label id='label-header'>Question Type(s):</label>
-								<div className='dropdown-container'>
-									<button type="button"
-										onClick={() => setQuestionTypeOpen(!questionTypeOpen)}
-									>
-										Select Question Type(s)
-									</button>
-									{questionTypeOpen && (
-										<div className='dropdown-menu'>
-											{[
-												['syntax', 'Syntax'],
-												['logic', 'Logic'],
-												['bug_fix', 'Bug Fix'],
-												['bug_identification', 'Bug Identification'],
-												['code_analysis', 'Code Analysis'],
-												['code_completion', 'Code Completion'],
-												['code_output', 'Code Output'],
-												['code_writing', 'Code Writing'],
-											].map(([value, label]) => (
-												<label key={value}>
-													<input
-														type='checkbox'
-														name='question_type'
-														value={value}
-														checked={formData.question_type.includes(value)}
-														onChange={handleCheckboxChange}
-													/>
-													{label}
-												</label>
-											))}
-										</div>
-									)}
+							{formData.programming_language !== 'no specific language' && (
+								<div className='question-type'>
+									<label id='label-header'>
+										<span
+											data-tooltip-id='label-tooltip-qtype'
+											data-tooltip-content='Select at least 1 or more question types'
+										>
+											Question Type(s):
+										</span>
+									</label>
+									<Tooltip id='label-tooltip-qtype' />
+									<div className='dropdown-container'>
+										<button
+											type='button'
+											onClick={() => setQuestionTypeOpen(!questionTypeOpen)}
+										>
+											Select Question Type(s)
+										</button>
+										{questionTypeOpen && (
+											<div className='dropdown-menu'>
+												{[
+													['syntax', 'Syntax'],
+													['logic', 'Logic'],
+													['bug_fix', 'Bug Fix'],
+													['bug_identification', 'Bug Identification'],
+													['code_analysis', 'Code Analysis'],
+													['code_completion', 'Code Completion'],
+													['code_output', 'Code Output'],
+													['code_writing', 'Code Writing'],
+												].map(([value, label]) => (
+													<label key={value}>
+														<input
+															type='checkbox'
+															name='question_type'
+															value={value}
+															checked={formData.question_type.includes(value)}
+															onChange={handleCheckboxChange}
+														/>
+														{label}
+													</label>
+												))}
+											</div>
+										)}
+									</div>
 								</div>
-							</div>
+							)}
 
 							<div className='question-style'>
-								<label id='label-header'>Question Style(s):</label>
+								<label id='label-header'>
+									<span
+										data-tooltip-id='label-tooltip-qstyle'
+										data-tooltip-content='Select at least 1 or more question styles'
+									>
+										Question Style(s):
+									</span>
+								</label>
+								<Tooltip id='label-tooltip-qstyle' />
 								<div className='dropdown-container'>
-									<button type="button"
+									<button
+										type='button'
 										onClick={() => setQuestionStyleOpen(!questionStyleOpen)}
 									>
 										Select Question Style(s)
@@ -257,12 +346,17 @@ function QuizFormComponent() {
 								name='topic_explanation'
 								value={formData.topic_explanation}
 								onChange={handleChange}
-								placeholder='Topic Explanation'
+								placeholder='Briefly explain the topic you want to generate. For example, "generate questions about iterators in Python"'
 							/>
 
 							<div>
 								<label id='label-header'>
-									Limit to Uploaded:
+									<span
+										data-tooltip-id='label-tooltip-limit'
+										data-tooltip-content='Optional to checkbox and want to reflect uploaded material'
+									>
+										Limit to Uploaded:
+									</span>
 									<input
 										type='checkbox'
 										name='limit_to_uploaded'
@@ -273,7 +367,13 @@ function QuizFormComponent() {
 							</div>
 							<div className='total-points-container'>
 								<label id='label-header' className='block-display'>
-									Total Points:
+									<span
+										data-tooltip-id='label-tooltip-points'
+										data-tooltip-content='Enter number of points that quiz/assignment should be worth'
+									>
+										Total Points:
+									</span>
+									<Tooltip id='label-tooltip-points' />
 									<input
 										type='number'
 										name='total_points'
@@ -284,14 +384,12 @@ function QuizFormComponent() {
 									/>
 								</label>
 							</div>
+							{errorMessage && <p className='error-message'>{errorMessage}</p>}
 							<button type='submit' id='submitButton'>
 								Submit
 							</button>
 						</form>
 					</div>
-					{/* <div className='response-section'>
-					<ResponseAI response={responseContent} />
-				</div> */}
 
 					<Link to='/' className='back-to-homepage'>
 						Back to Homepage

@@ -99,7 +99,7 @@ input[type='radio'] {
 }
 
 .back-to-homepage {
-	position: absolute;
+	position: fixed;
 	bottom: 20px;
 	right: 20px;
 	text-decoration: none;
@@ -109,23 +109,7 @@ input[type='radio'] {
 	padding: 5px 10px;
 	border-radius: 4px;
 	transition: background-color 0.2s;
-}
-
-.back-to-homepage:hover {
-	background-color: #e2e2e2;
-}
-
-.back-to-homepage {
-	position: absolute;
-	bottom: 20px;
-	right: 20px;
-	text-decoration: none;
-	color: #007fff;
-	font-weight: bold;
-	background-color: #f9f9f9;
-	padding: 5px 10px;
-	border-radius: 4px;
-	transition: background-color 0.2s;
+	
 }
 
 .back-to-homepage:hover {
@@ -172,7 +156,7 @@ input[type='radio'] {
 	display: block;
 	position: absolute;
 	background-color: #f9f9f9;
-	min-width: 160px;
+	min-width: 100px;
 	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
 	z-index: 1;
 }
@@ -279,4 +263,9 @@ input[type='radio'] {
 .question-type,
 .question-style {
 	padding: 10px 0px 10px 0px;
+}
+
+.error-message {
+    color: red;
+    font-weight: bold;
 }

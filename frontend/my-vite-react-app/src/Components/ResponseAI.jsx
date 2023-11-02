@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import '../CSS/ResponseAI.css';
 
 function ResponseAI(props) {
@@ -13,6 +13,14 @@ function ResponseAI(props) {
 		original_quiz: '',
 		modifications: '',
 	});
+
+	const handleChange = (e) => {
+		const { name, type, value, files } = e.target;
+
+		if (type === 'file') {
+			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
+		}
+	};
 
 	// Before making the POST request
 	let csrfCookie = document.cookie
@@ -36,15 +44,15 @@ function ResponseAI(props) {
 				}
 			);
 
-			const responseData = await response.json();			
+			const responseData = await response.json();
 			setOriginalQuiz(responseData.modified_quiz); // Update the original quiz with the modified content
 			setMessageContent(responseData.answer_key); // Update the answer key based on your state variable name
-			setQuizName(responseData?.response?.choices?.[0].message?.content.split('\n')[0]) //Update the Quiz name as well
+			setQuizName(
+				responseData?.response?.choices?.[0].message?.content.split('\n')[0]
+			); //Update the Quiz name as well
 			setModifications(''); // Clear the textarea
 		} catch (error) {
 			console.error('Error modifying the quiz:', error);
-			
-
 		}
 	};
 
@@ -75,29 +83,44 @@ function ResponseAI(props) {
 	}, [props]);
 
 	return (
-		<div className='outer-container'>
-			<div className='response-container'>
-				<div className='questions'>
-					<h1>{quizName}</h1>
-					<pre>{originalQuiz}</pre>
-					<div className='modifications-wrapper'>
-						<textarea
-							className='modifications-textarea'
-							placeholder='Type your modifications here...'
-							value={modifications}
-							onChange={(e) => setModifications(e.target.value)}
-						/>
-						<button className='modify-button' onClick={handleModify}>
-							Modify
-						</button>
+		<>
+			<div className='outer-container'>
+				<div className='response-container'>
+					<div className='questions'>
+						<h1>{quizName}</h1>
+						<pre>{originalQuiz}</pre>
+						<div className='modifications-wrapper'>
+							<textarea
+								className='modifications-textarea'
+								placeholder='Type your modifications here...'
+								value={modifications}
+								onChange={(e) => setModifications(e.target.value)}
+							/>
+							<button className='modify-button' onClick={handleModify}>
+								Modify
+							</button>
+							<label
+								htmlFor='download_material'
+								className='custom-download-button'
+							>
+								<img
+									src='/svgs/download-svgrepo-com.svg'
+									alt='Upload Icon'
+									className='download-icon'
+								/>
+							</label>
+						</div>
 					</div>
-				</div>
-				<div className='answers'>
-					<h1>Answer Key</h1>
-					<pre>{messageContent}</pre>
+					<div className='answers'>
+						<h1>Answer Key</h1>
+						<pre>{messageContent}</pre>
+					</div>
+					<Link to='/' className='back-to-homepage'>
+						Back to Homepage
+					</Link>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }
 
