@@ -76,6 +76,9 @@ input[type='radio'] {
 	flex: 0 0 45%; /* takes 48% width, adjust as needed */
 	box-sizing: border-box; /* This ensures padding and border are included in the width */
 	margin: 20px auto;
+	background-color: white;
+	border-radius: 20px;
+	padding:20px;
 }
 
 .quiz-response-section {

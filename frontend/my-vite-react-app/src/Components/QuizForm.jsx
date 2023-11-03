@@ -21,6 +21,7 @@ function QuizFormComponent() {
 		question_style: [],
 		limit_to_uploaded: false,
 		total_points: '',
+		uploaded_material: null,
 	});
 
 	// Before making the POST request
@@ -67,9 +68,6 @@ function QuizFormComponent() {
 
 		// Validation check for uploading file
 		if (formData.limit_to_uploaded && !formData.uploaded_material) {
-			// setErrorMessage(
-			// 	"You must upload a file when 'Limit to Uploaded' is checked."
-			// );
 			alert(
 				"You must upload a file when 'Limit to Uploaded' is checked.\nUncheck if you do not want to upload a file"
 			);
@@ -103,8 +101,6 @@ function QuizFormComponent() {
 			delete formData.programming_language;
 			delete formData.question_type;
 		}
-
-		console.log(data);
 
 		axios
 			.post(`http://127.0.0.1:8000/QAgenerator${endpoint}`, data, {

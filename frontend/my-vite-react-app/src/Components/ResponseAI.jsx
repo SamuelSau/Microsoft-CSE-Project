@@ -5,14 +5,20 @@ import '../CSS/ResponseAI.css';
 function ResponseAI(props) {
 	const [messageContent, setMessageContent] = useState('');
 	const [originalQuiz, setOriginalQuiz] = useState('');
+	const [originalAssignment, setOriginalAssignment] = useState('');
 	const [quizName, setQuizName] = useState('');
 	const location = useLocation();
 	const [modifications, setModifications] = useState('');
-
-	const [modifiedFormData, setModifiedFormData] = useState({
+	const [responseType, setResponseType] = useState('');
+	const [modifiedQuizFormData, setModifiedQuizFormData] = useState({
 		original_quiz: '',
 		modifications: '',
 	});
+	const [modifiedAssignmentFormData, setModifiedAssignmentFormData] = useState({
+		original_assignment: '',
+		modifications: '',
+	});
+	const [modifiedFormData, setModifiedFormData] = useState({});
 
 	const handleChange = (e) => {
 		const { name, type, value, files } = e.target;
@@ -32,53 +38,94 @@ function ResponseAI(props) {
 	const handleModify = async (e) => {
 		try {
 			e.preventDefault();
-			const response = await fetch(
-				'http://127.0.0.1:8000/QAgenerator/modify_quiz/',
-				{
-					method: 'POST',
-					headers: {
-						'X-CSRFToken': csrfToken,
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(modifiedFormData),
-				}
-			);
+
+			// Determine the endpoint based on the responseType state
+			let endpoint;
+			let modifiedFormData;
+
+			if (responseType === 'assignment') {
+				endpoint = 'http://127.0.0.1:8000/QAgenerator/modify_assignment/';
+				modifiedFormData = modifiedAssignmentFormData;
+			} else {
+				endpoint = 'http://127.0.0.1:8000/QAgenerator/modify_quiz/';
+				modifiedFormData = modifiedQuizFormData;
+			}
+			const response = await fetch(endpoint, {
+				method: 'POST',
+				headers: {
+					'X-CSRFToken': csrfToken,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(modifiedFormData),
+			});
 
 			const responseData = await response.json();
-			setOriginalQuiz(responseData.modified_quiz); // Update the original quiz with the modified content
-			setMessageContent(responseData.answer_key); // Update the answer key based on your state variable name
-			setQuizName(
-				responseData?.response?.choices?.[0].message?.content.split('\n')[0]
-			); //Update the Quiz name as well
-			setModifications(''); // Clear the textarea
+			console.log(responseData);
+			
+			console.log(responseData.modified_assignment);
+
+			if (responseData.modified_quiz) {
+				setOriginalQuiz(responseData.modified_quiz); // Update the original quiz with the modified content
+				setMessageContent(responseData.answer_key); // Update the answer key based on your state variable name
+				setQuizName(
+					responseData?.response?.choices?.[0].message?.content.split('\n')[0]
+				); //Update the Quiz name as well
+				setModifications(''); // Clear the textarea
+			} 
+			
+			else if (responseData.modified_assignment) {
+				setOriginalAssignment(responseData?.modified_assignment?.choices?.[0].message?.content);
+				setModifications('');
+			}
 		} catch (error) {
 			console.error('Error modifying the quiz:', error);
 		}
 	};
 
 	useEffect(() => {
-		setModifiedFormData({
+		setModifiedQuizFormData({
 			original_quiz: originalQuiz,
 			modifications: modifications,
 		});
 	}, [originalQuiz, modifications]);
 
 	useEffect(() => {
-		const responseData = location.state?.responseData;
-		const answerKeyContent =
-			responseData?.answer_key?.choices?.[0]?.message?.content;
-		const originalQuizContent = responseData?.original_quiz;
-		const content = responseData?.response?.choices?.[0].message?.content;
-		const quizName = content.split('\n')[0];
-		if (answerKeyContent) {
-			setMessageContent(answerKeyContent);
-		}
-		if (originalQuizContent) {
-			setOriginalQuiz(originalQuizContent);
-		}
+		setModifiedAssignmentFormData({
+			original_assignment: originalAssignment,
+			modifications: modifications,
+		});
+	}, [originalAssignment, modifications]);
 
-		if (quizName) {
-			setQuizName(quizName);
+	//Logic for when we check what type of response we got whatever form we submitted
+	useEffect(() => {
+		const responseData = location.state?.responseData;
+
+		if (responseData?.assignment.type === 'assignment') {
+			// Process and set state for AssignmentForm response
+			// Assuming some hypothetical structure for demonstration
+			const assignmentContent =
+				responseData?.assignment.choices?.[0]?.message?.content;
+			if (assignmentContent) {
+				setOriginalAssignment(assignmentContent); // Set original quiz or assignment text
+				setResponseType('assignment');
+			}
+		} else if (responseData?.quiz.type === 'quiz') {
+			const answerKeyContent =
+				responseData?.answer_key?.choices?.[0]?.message?.content;
+			const originalQuizContent = responseData?.original_quiz;
+			const content = responseData?.response?.choices?.[0].message?.content;
+			const quizName = content.split('\n')[0];
+			setResponseType('quiz');
+			if (answerKeyContent) {
+				setMessageContent(answerKeyContent);
+			}
+			if (originalQuizContent) {
+				setOriginalQuiz(originalQuizContent);
+			}
+
+			if (quizName) {
+				setQuizName(quizName);
+			}
 		}
 	}, [props]);
 
@@ -87,8 +134,17 @@ function ResponseAI(props) {
 			<div className='outer-container'>
 				<div className='response-container'>
 					<div className='questions'>
-						<h1>{quizName}</h1>
-						<pre>{originalQuiz}</pre>
+						{responseType === 'quiz' ? (
+							<div className='questions'>
+								<h1>{quizName}</h1>
+								<pre>{originalQuiz}</pre>
+							</div>
+						) : responseType === 'assignment' ? (
+							<div className='questions'>
+								<h1>Assignment</h1> {/* Change this as needed */}
+								<pre>{originalAssignment}</pre>
+							</div>
+						) : null}
 						<div className='modifications-wrapper'>
 							<textarea
 								className='modifications-textarea'
@@ -111,10 +167,12 @@ function ResponseAI(props) {
 							</label>
 						</div>
 					</div>
-					<div className='answers'>
-						<h1>Answer Key</h1>
-						<pre>{messageContent}</pre>
-					</div>
+					{props.type === 'quiz' && (
+						<div className='answers'>
+							<h1>Answer Key</h1>
+							<pre>{messageContent}</pre>
+						</div>
+					)}
 					<Link to='/' className='back-to-homepage'>
 						Back to Homepage
 					</Link>
