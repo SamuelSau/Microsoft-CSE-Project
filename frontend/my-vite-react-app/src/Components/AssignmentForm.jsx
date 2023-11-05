@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
-import '../CSS/AssignmentForm.css';
-import ResponseAI from './ResponseAI';
+import '../CSS/QuizForm.css';
 import axios from 'axios'; // Add this import
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Tooltip } from 'react-tooltip';
 
 function AssignmentForm() {
+	const navigate = useNavigate();
 	const [formData, setFormData] = useState({
 		topic_explanation: '',
-		programming_language: '',
-		other_language: '',
+		programming_language: 'python',
 		constraints: '',
 		limit_to_uploaded: false,
 		uploaded_material: null,
 	});
 
 	const [responseContent, setResponseContent] = useState('');
+	const [errorMessage, setErrorMessage] = useState('')
 
 	// Before making the POST request
 	const csrfToken = document.cookie
@@ -22,31 +23,55 @@ function AssignmentForm() {
 		.find((row) => row.startsWith('csrftoken='))
 		.split('=')[1];
 
-	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({
-			...prev,
-			[name]: value,
-		}));
-	};
-
-	const handleFileChange = (e) => {
-		setFormData((prev) => ({
-			...prev,
-			uploaded_material: e.target.files[0],
-		}));
-	};
-
-	const handleCheckboxChange = (e) => {
-		const { name, checked } = e.target;
-		setFormData((prev) => ({
-			...prev,
-			[name]: checked,
-		}));
-	};
-
+		const handleChange = (e) => {
+			const { name, type, value, files } = e.target;
+	
+			if (type === 'file') {
+				setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
+			} else if (type === 'checkbox') {
+				setFormData((prevState) => ({ ...prevState, [name]: e.target.checked }));
+			} else {
+				setFormData((prevState) => ({ ...prevState, [name]: value }));
+			}
+		};
+	
+		function handleCheckboxChange(event) {
+	
+			const { name, value } = event.target;
+	
+			// Create a copy of the current form data
+			const updatedFormData = { ...formData };
+	
+			if (updatedFormData[name].includes(value)) {
+				// If the value already exists, remove it
+				updatedFormData[name] = updatedFormData[name].filter(
+					(item) => item !== value
+				);
+			} else {
+				// Otherwise, add the value
+				updatedFormData[name] = [...updatedFormData[name], value];
+			}
+	
+			setFormData(updatedFormData);
+		}
+	
+	
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		
+		// Validation check for uploading file
+		if (formData.limit_to_uploaded && !formData.uploaded_material) {
+			setErrorMessage(
+				"You must upload a file when 'Limit to Uploaded' is checked."
+			);
+			alert(
+				"You must upload a file when 'Limit to Uploaded' is checked.\nUncheck if you do not want to upload a file"
+			);
+			return; // This stops the execution of the handleSubmit function
+		} else {
+			setErrorMessage(null); // Reset any previous error messages
+		}
+
 		const data = new FormData();
 		for (const key in formData) {
 			data.append(key, formData[key]);
@@ -61,6 +86,7 @@ function AssignmentForm() {
 			})
 			.then((response) => {
 				setResponseContent(response.data);
+				navigate('/response', { state: { responseData: response.data } });
 			})
 			.catch((error) => {
 				if (error.response) {
@@ -83,107 +109,120 @@ function AssignmentForm() {
 		<>
 			<div className='quiz-ai-container'>
 				<div className='form-container'>
-					<h2>Assignment Form</h2>
-					<form onSubmit={handleSubmit}>
-						<div className='form-group'>
-							<label htmlFor='topic_explanation'>Topic Explanation</label>
+					<div className='inner-container'>
+						<h1>Assignment Form</h1>
+						<form onSubmit={handleSubmit}>
+							<div className='quiz-upload-container'>
+								<Tooltip id='label-tooltip' />
+								
+								<div className='upload-material'>
+									<label
+										id='label-header'
+										data-tooltip-id='label-tooltip-upload'
+										data-tooltip-content='Upload pdfs up to 5 MB'
+									>
+										Uploaded Material:
+									</label>
+									<input
+										type='file'
+										id='uploaded_material' // Add an ID to associate with the label
+										name='uploaded_material'
+										onChange={handleChange}
+										style={{ display: 'none' }} // Hide the default input
+									/>
+									<Tooltip id='label-tooltip-upload' />
+									<label
+										htmlFor='uploaded_material'
+										className='custom-upload-button'
+									>
+										<img
+											src='/svgs/upload-svgrepo-com.svg'
+											alt='Upload Icon'
+											className='upload-icon'
+										/>
+									</label>
+								</div>
+							</div>
 							<textarea
-								id='topic_explanation'
 								name='topic_explanation'
 								value={formData.topic_explanation}
-								onChange={handleInputChange}
-								required
-							></textarea>
-						</div>
+								onChange={handleChange}
+								placeholder='Briefly explain the topic you want to generate. For example, "generate questions about iterators in Python"'
+							/>
 
-						<div className='form-group language-group'>
-							<label>Programming Language</label>
-							<div className='language-options'>
-								{[
-									{ value: 'python', label: 'Python' },
-									{ value: 'java', label: 'Java' },
-									{ value: 'c', label: 'C' },
-									{ value: 'c++', label: 'C++' },
-									{ value: 'other', label: 'Other' },
-								].map((lang) => (
-									<div key={lang.value} className='language-option'>
+							<div className='programming-languages'>
+								<label id='label-header'>
+									<span
+										data-tooltip-id='label-tooltip-language'
+										data-tooltip-content='Select 1 programming language'
+									>
+										Programming Language:
+									</span>
+								</label>
+								<Tooltip id='label-tooltip-language' />
+								<div className='language-flex-container'>
+									<select
+										name='programming_language'
+										value={formData.programming_language}
+										onChange={handleChange}
+									>
+										{[
+											['python', 'Python'],
+											['java', 'Java'],
+											['c', 'C'],
+											['other', 'Other'],
+											['no specific language', 'No specific language'],
+										].map(([value, label]) => (
+											<option key={value} value={value}>
+												{label}
+											</option>
+										))}
+									</select>
+
+									{formData.programming_language === 'other' && (
 										<input
-											type='radio'
-											id={lang.value}
-											name='programming_language'
-											value={lang.value}
-											onChange={handleInputChange}
-											required
+											type='text'
+											placeholder='Enter language'
+											name='other_programming_language'
+											onChange={handleChange}
+											className='other-language'
 										/>
-										<label htmlFor={lang.value}>{lang.label}</label>
-									</div>
-								))}
+									)}
+								</div>
 							</div>
-						</div>
-
-						{formData.programming_language === 'other' && (
-							<div className='form-group'>
-								<label htmlFor='other_language'>Specify Other Language</label>
-								<input
-									type='text'
-									id='other_language'
-									name='other_language'
-									value={formData.other_language}
-									onChange={handleInputChange}
-									placeholder='Specify other language'
-									required
-								/>
-							</div>
-						)}
-
-						<div className='form-group'>
-							<label htmlFor='constraints'>Constraints</label>
 							<textarea
-								id='constraints'
 								name='constraints'
 								value={formData.constraints}
-								onChange={handleInputChange}
-								required
-							></textarea>
-						</div>
-
-						<div className='form-group'>
-							<label htmlFor='limit_to_uploaded'>
-								Limit to Uploaded Material
-								<input
-									type='checkbox'
-									id='limit_to_uploaded'
-									name='limit_to_uploaded'
-									checked={formData.limit_to_uploaded}
-									onChange={handleCheckboxChange}
-								/>
-							</label>
-						</div>
-
-						<div className='form-group'>
-							<label htmlFor='uploaded_material'>Uploaded Material</label>
-							<input
-								type='file'
-								id='uploaded_material'
-								name='uploaded_material'
-								onChange={handleFileChange}
+								onChange={handleChange}
+								placeholder='Write constraints that apply to the content. E.g. "Make the questions easy for an intro to programming course"'
 							/>
-						</div>
 
-						<div className='form-group'>
-							<button id='submitButton' type='submit'>
+							<div>
+								<label id='label-header'>
+									<span
+										data-tooltip-id='label-tooltip-limit'
+										data-tooltip-content='Optional to checkbox and want to reflect uploaded material'
+									>
+										Limit to Uploaded:
+									</span>
+									<input
+										type='checkbox'
+										name='limit_to_uploaded'
+										checked={formData.limit_to_uploaded}
+										onChange={handleChange}
+									/>
+								</label>
+							</div>
+							<button type='submit' id='submitButton'>
 								Submit
 							</button>
-						</div>
-					</form>
-				</div>
+						</form>
+					</div>
 
-				<div className='response-section'>
-					<ResponseAI response={responseContent} />
+					<Link to='/' className='back-to-homepage'>
+						Back to Homepage
+					</Link>
 				</div>
-				<Link to='/' className='back-to-homepage'>
-					Back to Homepage
-				</Link>
 			</div>
 		</>
 	);

@@ -67,7 +67,8 @@ def get_quiz_answer_key(response):
     data = {
         "messages": [
             {"role": "system", "content": "You are a highly skilled TA that grades quizzes and assignments for educators."},
-            {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. Provide consice explanations.\nThe quiz is as follows:" + quiz}
+            {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe quiz is as follows:\n" + quiz},
+            {"role": "assistant", "content": "Here is the answer key for the quiz, with each answer showing the number of points per question:"}
         ]
     }
 
@@ -75,7 +76,7 @@ def get_quiz_answer_key(response):
     return response.json()
 
 def no_code_quiz_form(request):
-    html = ""
+
     if request.method == "POST":
         form = NoCodeQuizForm(request.POST, request.FILES)
         if form.is_valid():
@@ -87,7 +88,7 @@ def no_code_quiz_form(request):
                 entities = extract_content_from_file(uploaded_file)
                 file_data = "".join(map(str, entities))
                 file_data = limit_tokens_in_string(file_data,4500) +"\n"
-                user_message = "Attatched is a chunked form of a document submitted by a professor:\n" + file_data
+                user_message = "Attached is a chunked form of a document submitted by a professor:\n" + file_data
                 user_message += "\n\n Using this chunked data only consider the matierial that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a quiz."
                 
             user_message += ".\n"
@@ -100,7 +101,7 @@ def no_code_quiz_form(request):
             elif data['difficulty_level'] == 'advanced':
                 user_message+= " The questions should be complex and require a lot of thought."
             
-            if data['question_style'] == 'short_answer' or data['question_style'] == 'short_answer_and_multiple_choice':
+            if data['question_style'] == 'short_answer' or data['question_style'] == 'multiple_choice':
                 user_message+= " The types of short answer style questions present in the quiz are ones that challenge the student to elaborate on their answer so that it is clear they understand the answer. These can include fill in the blank, short response, etc."
             
 
@@ -113,10 +114,18 @@ def no_code_quiz_form(request):
 
             # html = turn_to_html(response['choices'][0]['message']['content'], answer_key['choices'][0]['message']['content'])
 
-            return render(request, 'results.html', {"response": response, "answer_key": answer_key, "original_quiz": response['choices'][0]['message']['content'], "html": html})
+            #return render(request, 'results.html', {"response": response, "answer_key": answer_key, "original_quiz": response['choices'][0]['message']['content'], "html": html})
+            return JsonResponse({
+                "response": response,
+                "answer_key": answer_key,
+                "original_quiz": response['choices'][0]['message']['content'],
+            })
     else:
-        form = NoCodeQuizForm()
-    return render(request, 'quiz_form.html', {"form": form})
+        return JsonResponse({"errors": form.errors}, status=400)
+    #     form = NoCodeQuizForm()
+    
+    return JsonResponse({"message": "Method not allowed"}, status=405)
+    #return render(request, 'quiz_form.html', {"form": form})
 
 @ensure_csrf_cookie
 def quiz_form(request):
@@ -132,8 +141,8 @@ def quiz_form(request):
                 entities = extract_content_from_file(uploaded_file)
                 file_data = "".join(map(str, entities))
                 file_data = limit_tokens_in_string(file_data,4500) +"\n"
-                user_message = "Attatched is a chunked form of a document submitted by a professor:\n" + file_data
-                user_message += "\n\n Using this chunked data only consider the matierial that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a quiz."
+                user_message = "Attached is a chunked form of a document submitted by a professor:\n" + file_data
+                user_message += "\n\n Using this chunked data only consider the material that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a quiz."
                 
             user_message += ".\n"
 
@@ -185,6 +194,7 @@ def quiz_form(request):
             
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
+            response["type"] == "quiz"
             return JsonResponse({
                 "response": response,
                 "answer_key": answer_key,
@@ -209,12 +219,31 @@ def modify_quiz(request):
         new_request+= "\nIn regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz."
 
         response = send_message_to_openai(new_request)
+        response["type"] = "quiz"
         answer_key = get_quiz_answer_key(response)
 
         return JsonResponse({
             "answer_key": answer_key['choices'][0]['message']['content'],
             "modified_quiz" : response['choices'][0]['message']['content']
         })
+    return JsonResponse({"message": "Method not allowed"}, status=405)
+
+@csrf_exempt
+def modify_assignment(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        original_assignment = data['original_assignment']
+        modifications = data['modifications']
+
+        # Concatenate the original request with modifications
+        new_request = "Given the following quiz:" + original_assignment + "\nPlease make the following modifications, but keep absolutely everything else the same except for the question numbers(if questions are removed).\nModifications:" + modifications
+
+        new_request+= "\nIn regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz."
+
+        response = send_message_to_openai(new_request)
+        response['type'] = "assignment"
+        return JsonResponse({"modified_assignment": response})
+    
     return JsonResponse({"message": "Method not allowed"}, status=405)
 
 @ensure_csrf_cookie
@@ -230,18 +259,19 @@ def assignment_form(request):
                 entities = extract_content_from_file(uploaded_file)
                 file_data = "".join(map(str, entities))
                 file_data = limit_tokens_in_string(file_data,4500) +"\n"
-                user_message = "Attatched is a chunked form of a document submitted by a professor:\n" + file_data
+                user_message = "Attached is a chunked form of a document submitted by a professor:\n" + file_data
                 user_message += "\n\n Using this chunked data only consider the matierial that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a assignment."
                 
             user_message += ".\n"
 
-            user_message = f"Generate an assignment on {data['topic_explanation']} in {data['programming_language']} language with the following constraints: {data['constraints']}."
+            user_message = f"Generate an assignment on {data['topic_explanation']} in {data['programming_language']} with the following constraints: {data['constraints']}."
 
             if data['programming_language'] == 'other':
                 user_message += f" The specified language is {data['other_language']}."
 
             response = send_message_to_openai(user_message)
-            return JsonResponse(response)
+            response["type"] = "assignment"
+            return JsonResponse({"assignment": response})
         else:
             return JsonResponse({"errors": form.errors}, status=400)
     
@@ -287,7 +317,6 @@ def extract_entities_from_azure(text):
     
     documents = [{"id": str(idx), "language": "en", "text": chunk} for idx, chunk in enumerate(chunks)]
     
-
     MAX_DOCS_PER_REQUEST = 5
     responses = []
     for i in range(0, len(documents), MAX_DOCS_PER_REQUEST):
