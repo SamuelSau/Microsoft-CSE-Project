@@ -18,6 +18,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 # Environment variables
 SECRET_KEY1 = config("SECRET_KEY1")
 SECRET_KEY2 = config("SECRET_KEY2")
+SECRET_KEY3 = config("SECRET_KEY3")
 RESOURCE_NAME = config("RESOURCE_NAME")
 MODEL_NAME = config("MODEL_NAME")
 
@@ -194,7 +195,7 @@ def quiz_form(request):
             
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
-            response["type"] == "quiz"
+            response["type"] = "quiz"
             return JsonResponse({
                 "response": response,
                 "answer_key": answer_key,
