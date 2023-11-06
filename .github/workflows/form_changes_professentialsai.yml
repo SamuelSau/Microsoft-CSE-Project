@@ -36,13 +36,13 @@ jobs:
       - name: Zip artifact for deployment
         run: |
           cd frontend/my-vite-react-app/dist/
-          zip release.zip ./* -r
+          zip -r ../../release.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
           name: node-app
-          path: frontend/my-vite-react-app/dist/release.zip
+          path: frontend/my-vite-react-app/release.zip
 
   deploy:
     runs-on: ubuntu-latest
