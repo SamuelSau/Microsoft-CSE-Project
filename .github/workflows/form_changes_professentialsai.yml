@@ -27,9 +27,16 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
+          
+  # Copy the web.config file to the dist directory
+      - name: Copy web.config to dist
+        run: |
+          cp frontend/my-vite-react-app/web.config frontend/my-vite-react-app/dist/
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: |
+          cd frontend/my-vite-react-app
+          zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
