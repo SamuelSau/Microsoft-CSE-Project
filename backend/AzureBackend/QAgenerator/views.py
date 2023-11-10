@@ -33,7 +33,7 @@ def limit_tokens_in_string(text, max_tokens):
     truncated_tokens = tokens[:max_tokens]
     return ' '.join(truncated_tokens)
 
-@ensure_csrf_cookie
+@csrf_exempt
 def set_csrf_token(request):
     return HttpResponse(status=204)
 
@@ -128,7 +128,7 @@ def no_code_quiz_form(request):
     return JsonResponse({"message": "Method not allowed"}, status=405)
     #return render(request, 'quiz_form.html', {"form": form})
 
-@ensure_csrf_cookie
+@csrf_exempt
 def quiz_form(request):
     if request.method == "POST":
         form = QuizForm(request.POST, request.FILES)
@@ -237,9 +237,9 @@ def modify_assignment(request):
         modifications = data['modifications']
 
         # Concatenate the original request with modifications
-        new_request = "Given the following quiz:" + original_assignment + "\nPlease make the following modifications, but keep absolutely everything else the same except for the question numbers(if questions are removed).\nModifications:" + modifications
+        new_request = "Given the following assignment:" + original_assignment + "\nPlease make the following modifications, but keep absolutely everything else the same except for the question numbers(if questions are removed).\nModifications:" + modifications
 
-        new_request+= "\nIn regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz."
+        new_request+= "\nIn regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the assignment."
 
         response = send_message_to_openai(new_request)
         response['type'] = "assignment"
@@ -247,7 +247,7 @@ def modify_assignment(request):
     
     return JsonResponse({"message": "Method not allowed"}, status=405)
 
-@ensure_csrf_cookie
+@csrf_exempt
 def assignment_form(request):
     if request.method == "POST":
         form = AssignmentForm(request.POST, request.FILES)
@@ -278,6 +278,7 @@ def assignment_form(request):
     
     return JsonResponse({"message": "Method not allowed"}, status=405)
 
+@csrf_exempt
 def extract_content_from_file(uploaded_file):
     content = ""
 
@@ -302,6 +303,7 @@ def extract_content_from_file(uploaded_file):
 
     return entities
 
+@csrf_exempt
 def extract_entities_from_azure(text):
         
     SECRET_KEY3 = config("SECRET_KEY3")

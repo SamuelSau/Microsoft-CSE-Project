@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, exam_refinery_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -7,5 +7,6 @@ urlpatterns = [
     path('no_code_quiz_form/', views.no_code_quiz_form, name='no_code_quiz_form'),
     path('assignment_form/', views.assignment_form, name='assignment_form'),
     path('modify_quiz/', views.modify_quiz, name='modify_quiz'),
-    path('modify_assignment/', views.modify_assignment, name='modify_assignment')
+    path('modify_assignment/', views.modify_assignment, name='modify_assignment'),
+    path('exam_refinery/', exam_refinery_views.exam_refine_form, name='exam_refinery'),
 ]

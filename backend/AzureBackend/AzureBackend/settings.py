@@ -49,13 +49,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOWED_ORIGINS = [
-#     "http://127.0.0.1:8001",
-# ]
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8001",
+]
 CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8001"]
-
 
 ROOT_URLCONF = 'AzureBackend.urls'
 

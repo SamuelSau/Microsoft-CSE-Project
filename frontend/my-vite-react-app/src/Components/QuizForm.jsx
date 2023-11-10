@@ -25,11 +25,11 @@ function QuizFormComponent() {
 	});
 
 	// Before making the POST request
-	let csrfCookie = document.cookie
-		.split('; ')
-		.find((row) => row.startsWith('csrftoken='));
+	// let csrfCookie = document.cookie
+	// 	.split('; ')
+	// 	.find((row) => row.startsWith('csrftoken='));
 
-	const csrfToken = csrfCookie ? csrfCookie.split('=')[1] : null;
+	// const csrfToken = csrfCookie ? csrfCookie.split('=')[1] : null;
 
 	const handleChange = (e) => {
 		const { name, type, value, files } = e.target;
@@ -101,14 +101,14 @@ function QuizFormComponent() {
 			delete formData.programming_language;
 			delete formData.question_type;
 		}
-
+		
 		axios
 			.post(`http://127.0.0.1:8000/QAgenerator${endpoint}`, data, {
 				headers: {
-					'X-CSRFToken': csrfToken,
+					//'X-CSRFToken': csrfToken,
 					'Content-Type': 'multipart/form-data',
 				},
-				withCredentials: true,
+				//withCredentials: true,
 			})
 			.then((response) => {
 				setResponseContent(response.data);
@@ -230,7 +230,7 @@ function QuizFormComponent() {
 								</div>
 							</div>
 
-							<div class='difficulty-flex-container'>
+							<div className='difficulty-flex-container'>
 								<label id='label-header'>
 									<span
 										data-tooltip-id='label-tooltip-diff'

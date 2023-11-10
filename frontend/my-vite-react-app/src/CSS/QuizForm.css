@@ -272,3 +272,28 @@ input[type='radio'] {
     color: red;
     font-weight: bold;
 }
+
+.uploaded-file-name {
+    margin-top: 10px; /* Adds space above the filename */
+    font-size: 14px; /* Sets the font size */
+    color: #333; /* Sets the text color */
+    background-color: #f3f3f3; /* Sets the background color */
+    border: 1px solid #dcdcdc; /* Adds a border */
+    border-radius: 4px; /* Rounds the corners of the border */
+    padding: 5px 10px; /* Adds padding inside the box */
+    text-align: center; /* Centers the text */
+    width: fit-content; /* Adjusts the width to fit the content */
+    max-width: 100%; /* Ensures the box doesn't exceed the parent width */
+    overflow: hidden; /* Hides any overflowing text */
+    text-overflow: ellipsis; /* Adds an ellipsis for overflowed text */
+    white-space: nowrap; /* Prevents text from wrapping to the next line */
+    display: block; /* Makes it a block element */
+    margin-left: auto; /* Centers the element horizontally */
+    margin-right: auto;
+}
+
+/* Optional: hover effect to indicate interactivity */
+.uploaded-file-name:hover {
+    background-color: #e9e9e9;
+    cursor: pointer; /* Changes the cursor to indicate it's clickable (if it has functionality) */
+}

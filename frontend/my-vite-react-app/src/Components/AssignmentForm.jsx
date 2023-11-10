@@ -15,50 +15,48 @@ function AssignmentForm() {
 	});
 
 	const [responseContent, setResponseContent] = useState('');
-	const [errorMessage, setErrorMessage] = useState('')
+	const [errorMessage, setErrorMessage] = useState('');
 
 	// Before making the POST request
-	const csrfToken = document.cookie
-		.split('; ')
-		.find((row) => row.startsWith('csrftoken='))
-		.split('=')[1];
+	// const csrfToken = document.cookie
+	// 	.split('; ')
+	// 	.find((row) => row.startsWith('csrftoken='))
+	// 	.split('=')[1];
 
-		const handleChange = (e) => {
-			const { name, type, value, files } = e.target;
-	
-			if (type === 'file') {
-				setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
-			} else if (type === 'checkbox') {
-				setFormData((prevState) => ({ ...prevState, [name]: e.target.checked }));
-			} else {
-				setFormData((prevState) => ({ ...prevState, [name]: value }));
-			}
-		};
-	
-		function handleCheckboxChange(event) {
-	
-			const { name, value } = event.target;
-	
-			// Create a copy of the current form data
-			const updatedFormData = { ...formData };
-	
-			if (updatedFormData[name].includes(value)) {
-				// If the value already exists, remove it
-				updatedFormData[name] = updatedFormData[name].filter(
-					(item) => item !== value
-				);
-			} else {
-				// Otherwise, add the value
-				updatedFormData[name] = [...updatedFormData[name], value];
-			}
-	
-			setFormData(updatedFormData);
+	const handleChange = (e) => {
+		const { name, type, value, files } = e.target;
+
+		if (type === 'file') {
+			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
+		} else if (type === 'checkbox') {
+			setFormData((prevState) => ({ ...prevState, [name]: e.target.checked }));
+		} else {
+			setFormData((prevState) => ({ ...prevState, [name]: value }));
 		}
-	
-	
+	};
+
+	function handleCheckboxChange(event) {
+		const { name, value } = event.target;
+
+		// Create a copy of the current form data
+		const updatedFormData = { ...formData };
+
+		if (updatedFormData[name].includes(value)) {
+			// If the value already exists, remove it
+			updatedFormData[name] = updatedFormData[name].filter(
+				(item) => item !== value
+			);
+		} else {
+			// Otherwise, add the value
+			updatedFormData[name] = [...updatedFormData[name], value];
+		}
+
+		setFormData(updatedFormData);
+	}
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		
+
 		// Validation check for uploading file
 		if (formData.limit_to_uploaded && !formData.uploaded_material) {
 			setErrorMessage(
@@ -77,13 +75,17 @@ function AssignmentForm() {
 			data.append(key, formData[key]);
 		}
 		axios
-			.post('http://127.0.0.1:8000/QAgenerator/assignment_form/', data, {
-				headers: {
-					'X-CSRFToken': csrfToken,
-					'Content-Type': 'multipart/form-data',
-				},
-				withCredentials: true,
-			})
+			.post(
+				'http://127.0.0.1:8000/QAgenerator/assignment_form/',
+				data,
+				{
+					headers: {
+						// 'X-CSRFToken': csrfToken,
+						'Content-Type': 'multipart/form-data',
+					},
+					withCredentials: true,
+				}
+			)
 			.then((response) => {
 				setResponseContent(response.data);
 				navigate('/response', { state: { responseData: response.data } });
@@ -114,7 +116,7 @@ function AssignmentForm() {
 						<form onSubmit={handleSubmit}>
 							<div className='quiz-upload-container'>
 								<Tooltip id='label-tooltip' />
-								
+
 								<div className='upload-material'>
 									<label
 										id='label-header'

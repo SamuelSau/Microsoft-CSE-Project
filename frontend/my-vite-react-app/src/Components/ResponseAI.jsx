@@ -7,6 +7,7 @@ function ResponseAI(props) {
 	const [originalQuiz, setOriginalQuiz] = useState('');
 	const [originalAssignment, setOriginalAssignment] = useState('');
 	const [quizName, setQuizName] = useState('');
+	const [quizVariations, setQuizVariations] = useState([]); // State to store quiz variations
 	const location = useLocation();
 	const [modifications, setModifications] = useState('');
 	const [responseType, setResponseType] = useState('');
@@ -28,13 +29,6 @@ function ResponseAI(props) {
 		}
 	};
 
-	// Before making the POST request
-	let csrfCookie = document.cookie
-		.split('; ')
-		.find((row) => row.startsWith('csrftoken='));
-
-	const csrfToken = csrfCookie ? csrfCookie.split('=')[1] : null;
-
 	const handleModify = async (e) => {
 		try {
 			e.preventDefault();
@@ -46,23 +40,20 @@ function ResponseAI(props) {
 			if (responseType === 'assignment') {
 				endpoint = 'http://127.0.0.1:8000/QAgenerator/modify_assignment/';
 				modifiedFormData = modifiedAssignmentFormData;
-			} else {
+			} else if (responseType === 'quiz') {
 				endpoint = 'http://127.0.0.1:8000/QAgenerator/modify_quiz/';
 				modifiedFormData = modifiedQuizFormData;
 			}
+
 			const response = await fetch(endpoint, {
 				method: 'POST',
 				headers: {
-					'X-CSRFToken': csrfToken,
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify(modifiedFormData),
 			});
 
 			const responseData = await response.json();
-			console.log(responseData);
-			
-			console.log(responseData.modified_assignment);
 
 			if (responseData.modified_quiz) {
 				setOriginalQuiz(responseData.modified_quiz); // Update the original quiz with the modified content
@@ -71,10 +62,10 @@ function ResponseAI(props) {
 					responseData?.response?.choices?.[0].message?.content.split('\n')[0]
 				); //Update the Quiz name as well
 				setModifications(''); // Clear the textarea
-			} 
-			
-			else if (responseData.modified_assignment) {
-				setOriginalAssignment(responseData?.modified_assignment?.choices?.[0].message?.content);
+			} else if (responseData.modified_assignment) {
+				setOriginalAssignment(
+					responseData?.modified_assignment?.choices?.[0].message?.content
+				);
 				setModifications('');
 			}
 		} catch (error) {
@@ -100,7 +91,7 @@ function ResponseAI(props) {
 	useEffect(() => {
 		const responseData = location.state?.responseData;
 
-		if (responseData?.assignment.type === 'assignment') {
+		if (responseData?.assignment?.type === 'assignment') {
 			// Process and set state for AssignmentForm response
 			// Assuming some hypothetical structure for demonstration
 			const assignmentContent =
@@ -109,7 +100,7 @@ function ResponseAI(props) {
 				setOriginalAssignment(assignmentContent); // Set original quiz or assignment text
 				setResponseType('assignment');
 			}
-		} else if (responseData?.quiz.type === 'quiz') {
+		} else if (responseData?.response?.type === 'quiz') {
 			const answerKeyContent =
 				responseData?.answer_key?.choices?.[0]?.message?.content;
 			const originalQuizContent = responseData?.original_quiz;
@@ -125,7 +116,16 @@ function ResponseAI(props) {
 
 			if (quizName) {
 				setQuizName(quizName);
+			} 
+		}
+		else if (responseData?.response?.type === 'variation') {
+			// Handling quiz variations
+			const variations = responseData?.response?.choices[0]?.message?.content;
+			console.log(variations); // Assuming 'quiz_variations' is the key in the response
+			if (variations) {
+				setQuizVariations(variations); // Set the variations
 			}
+			setResponseType('variations');
 		}
 	}, [props]);
 
@@ -135,7 +135,7 @@ function ResponseAI(props) {
 				<div className='response-container'>
 					<div className='questions'>
 						{responseType === 'quiz' ? (
-							<div className='questions'>
+							<div>
 								<h1>{quizName}</h1>
 								<pre>{originalQuiz}</pre>
 							</div>
@@ -145,6 +145,15 @@ function ResponseAI(props) {
 								<pre>{originalAssignment}</pre>
 							</div>
 						) : null}
+						{responseType === 'variations' && (
+						<div className='questions'>
+							<h1>Variation</h1> {/* Change this as needed */}
+							<pre>{quizVariations}</pre>
+						</div>
+					)}
+					
+					{/* Modifications Wrapper - Only show for quizzes and assignments */}
+					{(responseType === 'quiz' || responseType === 'assignment') && (
 						<div className='modifications-wrapper'>
 							<textarea
 								className='modifications-textarea'
@@ -155,24 +164,17 @@ function ResponseAI(props) {
 							<button className='modify-button' onClick={handleModify}>
 								Modify
 							</button>
-							<label
-								htmlFor='download_material'
-								className='custom-download-button'
-							>
-								<img
-									src='/svgs/download-svgrepo-com.svg'
-									alt='Upload Icon'
-									className='download-icon'
-								/>
-							</label>
 						</div>
+					)}
 					</div>
-					{props.type === 'quiz' && (
+					
+					{responseType === 'quiz' && (
 						<div className='answers'>
 							<h1>Answer Key</h1>
 							<pre>{messageContent}</pre>
 						</div>
 					)}
+
 					<Link to='/' className='back-to-homepage'>
 						Back to Homepage
 					</Link>
