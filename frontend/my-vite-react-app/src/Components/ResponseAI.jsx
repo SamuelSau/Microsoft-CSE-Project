@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import '../CSS/ResponseAI.css';
+import { jsPDF } from 'jspdf';
 
 function ResponseAI(props) {
 	const [messageContent, setMessageContent] = useState('');
@@ -27,6 +28,28 @@ function ResponseAI(props) {
 		if (type === 'file') {
 			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
 		}
+	};
+
+	const downloadPdf = () => {
+		const doc = new jsPDF();
+
+		// Add content to the PDF here
+		if (responseType === 'quiz') {
+			doc.text(quizName, 10, 10);
+			doc.text(originalQuiz, 10, 20); // You might need to format this correctly
+			doc.addPage();
+			doc.text('Answer Key', 10, 10);
+			doc.text(messageContent, 10, 20); // Again, format as needed
+		} else if (responseType === 'assignment') {
+			doc.text('Assignment', 10, 10);
+			doc.text(originalAssignment, 10, 20); // Format as needed
+		} else if (responseType === 'variations') {
+			doc.text('Variations', 10, 10);
+			doc.text(quizVariations, 10, 20); // Format as needed
+		}
+
+		// Save the PDF
+		doc.save('response.pdf');
 	};
 
 	const handleModify = async (e) => {
@@ -116,9 +139,8 @@ function ResponseAI(props) {
 
 			if (quizName) {
 				setQuizName(quizName);
-			} 
-		}
-		else if (responseData?.response?.type === 'variation') {
+			}
+		} else if (responseData?.response?.type === 'variation') {
 			// Handling quiz variations
 			const variations = responseData?.response?.choices[0]?.message?.content;
 			console.log(variations); // Assuming 'quiz_variations' is the key in the response
@@ -146,28 +168,35 @@ function ResponseAI(props) {
 							</div>
 						) : null}
 						{responseType === 'variations' && (
-						<div className='questions'>
-							<h1>Variation</h1> {/* Change this as needed */}
-							<pre>{quizVariations}</pre>
-						</div>
-					)}
-					
-					{/* Modifications Wrapper - Only show for quizzes and assignments */}
-					{(responseType === 'quiz' || responseType === 'assignment') && (
-						<div className='modifications-wrapper'>
-							<textarea
-								className='modifications-textarea'
-								placeholder='Type your modifications here...'
-								value={modifications}
-								onChange={(e) => setModifications(e.target.value)}
-							/>
-							<button className='modify-button' onClick={handleModify}>
-								Modify
+							<div className='questions'>
+								<h1>Variation</h1> {/* Change this as needed */}
+								<pre>{quizVariations}</pre>
+							</div>
+						)}
+
+						{/* Modifications Wrapper - Only show for quizzes and assignments */}
+						{(responseType === 'quiz' || responseType === 'assignment') && (
+							<div className='modifications-wrapper'>
+								<textarea
+									className='modifications-textarea'
+									placeholder='Type your modifications here...'
+									value={modifications}
+									onChange={(e) => setModifications(e.target.value)}
+								/>
+								<button className='modify-button' onClick={handleModify}>
+									Modify
+								</button>
+							</div>
+						)}
+
+						<div className='download-material'>
+							<button onClick={downloadPdf} className='download-button'>
+								Download as PDF
 							</button>
 						</div>
-					)}
+
 					</div>
-					
+
 					{responseType === 'quiz' && (
 						<div className='answers'>
 							<h1>Answer Key</h1>

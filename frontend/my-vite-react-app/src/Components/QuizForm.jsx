@@ -91,8 +91,13 @@ function QuizFormComponent() {
 
 		const data = new FormData();
 		for (const key in formData) {
-			data.append(key, formData[key]);
-		}
+			if (Array.isArray(formData[key])) {
+			  formData[key].forEach(value => data.append(key, value));
+			} else {
+			  data.append(key, formData[key]);
+			}
+		  }
+		
 		let endpoint = '/quiz_form/'; // default endpoint
 
 		//Update formData when we don't have a programming language and question type for no_code_quiz_form function
