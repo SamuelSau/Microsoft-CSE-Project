@@ -86,3 +86,7 @@ class QuizRefineryForm(forms.Form):
     num_variations = forms.IntegerField(min_value=1, max_value=10)
     upload_file = forms.FileField(required=False)
     
+class UploadFileForm(forms.Form):
+    quiz_file = forms.FileField(required=False)
+    answer_key_file = forms.FileField(required=False)
+    student_answers = forms.ImageField()

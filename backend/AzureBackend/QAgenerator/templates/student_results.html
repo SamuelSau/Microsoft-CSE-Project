@@ -1,0 +1,14 @@
+<a href="{% url 'home' %}">Go back to home</a>
+<h1>Student Results</h1>
+<div>
+
+    <img src="data:image/png;base64,{{ base64_encoded_result }}" alt="Preprocessed Image">
+
+    <h2>Feedback and Score</h2>
+    <ul>
+        {% for line in text %}
+        <li>{{ line }}</li>
+        {% endfor %}
+    </ul>
+</div>
+<a href="{% url 'grade' %}">Grade Another Quiz</a>

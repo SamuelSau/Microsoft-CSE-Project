@@ -1,0 +1,8 @@
+<a href="{% url 'home' %}">Go back to home</a>
+
+<h1>Upload Student Quiz and Answers</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload and Grade</button>
+</form>
