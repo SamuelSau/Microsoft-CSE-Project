@@ -55,9 +55,9 @@ def create_quiz_variations(file_content: str, num_variations: int):
 
     data = {
         "messages": [
-            {"role": "system", "content": "You are a helpful assistant that takes previous exams or content, and creates variations into quiz material. Where the quizes to be the exact same level of difficulty and same concepts as shown in the content, but the ordering should be different and would make it difficult for a student to cheat. If you are not given an exam, please create three questions, where each question is a random topic from the provided content"},
-            {"role": "user", "content": "Keep the formatting the exact same and do not stray too far from what is seen in the provided quiz. Include the original quiz in the response so we can visually see what the changes are from. Also, if any code is written, please surround it with '```' on each side so I can format it properly on the front end. I want the original quiz at the top, with the following number of variations of the quiz. Please make exactly " + str(num_variations) + " variations of the following quiz:\n\n" + file_content},
-            {"role": "assistant", "content": "Here are the variations of the quiz, each variation having a title 'Variation #' at the beginning, you do not need to number the questions, and all code blocks, please check if you provide any, must be surrounded by three '`' to indicate it is code, but otherwise do not"}
+            {"role": "system", "content": "You are a helpful assistant that takes previous exams or content, and creates variations for quiz material. The quizzes should reflect the same level of difficulty and same concepts as shown in the content. If you are not given an exam, please create three questions out of the content you are sent, where each question is a random topic from the provided content. Please ensure that the response you are sending makes sense and is a quiz that could be given to a student."},
+            {"role": "user", "content": "Keep the formatting the exact same and do not stray too far from what is seen in the provided quiz. Include the original quiz in the response so we can visually see what the changes are from. Also, if any code is written, please surround it with '```' on each side. I want the original quiz at the top, with the following number of variations of the quiz. Please make exactly " + str(num_variations) + " variations of the following quiz:\n\n" + file_content},
+            {"role": "assistant", "content": "Understood, I am a helpful assisstant that ensures that the content for the quiz/exam variation makes sense and has at least three questions. Since I might be given lots of keywords, I should try to analyze and create a question out of those concepts. Here each variation having a title 'Variation #' at the beginning and questions do not need to be numbered. I will check if any code blocks exist, so they must be surrounded by three '`' to indicate it is code, but otherwise do not."}
         ]
     }
 
@@ -102,7 +102,8 @@ def extract_content_from_file(uploaded_file, file_extension) -> str:
         pdf_reader = PyPDF2.PdfReader(uploaded_file)
         for page_num in range(len(pdf_reader.pages)):
             content += pdf_reader.pages[page_num].extract_text() + "\n"
-
+    
+    #needs to fixing 
     elif file_extension in ["ppt", "pptx"]:
 
         # Extract content from PPT

@@ -30,27 +30,53 @@ function ResponseAI(props) {
 		}
 	};
 
-	const downloadPdf = () => {
-		const doc = new jsPDF();
-
-		// Add content to the PDF here
-		if (responseType === 'quiz') {
-			doc.text(quizName, 10, 10);
-			doc.text(originalQuiz, 10, 20); // You might need to format this correctly
-			doc.addPage();
-			doc.text('Answer Key', 10, 10);
-			doc.text(messageContent, 10, 20); // Again, format as needed
-		} else if (responseType === 'assignment') {
-			doc.text('Assignment', 10, 10);
-			doc.text(originalAssignment, 10, 20); // Format as needed
-		} else if (responseType === 'variations') {
-			doc.text('Variations', 10, 10);
-			doc.text(quizVariations, 10, 20); // Format as needed
-		}
-
-		// Save the PDF
-		doc.save('response.pdf');
-	};
+// Helper function to create a PDF for a single variation
+const createPdfForVariation = (variationContent, variationNumber) => {
+	const doc = new jsPDF();
+	const maxWidth = 180; // adjust as needed
+	const formattedText = doc.splitTextToSize(variationContent, maxWidth);
+	
+	doc.text(formattedText, 10, 10);
+	doc.save(`variation_${variationNumber}.pdf`);
+  };
+  
+  // Modified downloadPdf function
+  const downloadPdf = () => {
+	if (responseType === 'quiz' || responseType === 'assignment') {
+	  const doc = new jsPDF();
+	  const maxWidth = 180; // Adjust this value as needed
+	  let content, title;
+  
+	  if (responseType === 'quiz') {
+		title = quizName;
+		content = originalQuiz;
+	  } else {
+		title = 'Assignment';
+		content = originalAssignment;
+	  }
+  
+	  doc.text(title, 10, 10);
+	  const splitContent = doc.splitTextToSize(content, maxWidth);
+	  doc.text(splitContent, 10, 20);
+	  doc.save(`${title.toLowerCase()}_response.pdf`);
+	} else if (responseType === 'variations') {
+	  const variationRegex = /Variation \d+/g;
+	  let startIndex = 0;
+	  let variationNumber = 1;
+  
+	  quizVariations.split(variationRegex).forEach((variation, index) => {
+		if(index === 0) return; // Skip the first split as it's likely to be empty
+  
+		const endIndex = quizVariations.indexOf(variation, startIndex);
+		const variationContent = quizVariations.substring(startIndex, endIndex !== -1 ? endIndex : undefined);
+		startIndex = endIndex !== -1 ? endIndex : quizVariations.length;
+  
+		createPdfForVariation(variationContent, variationNumber);
+		variationNumber++;
+	  });
+	}
+  };
+  
 
 	const handleModify = async (e) => {
 		try {
@@ -188,13 +214,16 @@ function ResponseAI(props) {
 								</button>
 							</div>
 						)}
-
 						<div className='download-material'>
-							<button onClick={downloadPdf} className='download-button'>
+							<button onClick={downloadPdf} className='custom-download-button'>
 								Download as PDF
+								<img
+									src='/svgs/download-svgrepo-com.svg'
+									alt='Download Icon'
+									className='download-icon'
+								/>
 							</button>
 						</div>
-
 					</div>
 
 					{responseType === 'quiz' && (
