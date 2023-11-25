@@ -104,4 +104,9 @@ pre {
 }
 
 
-
+.ai-disclaimer-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 10px; /* Fine print size */
+    color: #666; /* Optional: Grey color for subtlety */
+  }

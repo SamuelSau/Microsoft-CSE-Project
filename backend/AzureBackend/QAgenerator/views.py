@@ -147,7 +147,7 @@ def quiz_form(request):
                 
             user_message += ".\n"
 
-            user_message = f"Write a coding quiz in the programming language {data['programming_language']} with exactly {data['num_questions']} questions, do not go over this number. The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of syntax and logic. The topics for this quiz are {data['topic_explanation']}. So ensure that each topic is covered in the quiz. The type of questions that can be on this quiz are: {data['question_type']}. The difficulty level of the quiz should be {data['difficulty_level']}."
+            user_message = f"Write a coding quiz in the programming language {data['programming_language']} with exactly {data['num_questions']} questions, do not go over this number. The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of syntax and logic. The topics for this quiz are {data['topic_explanation']}. So ensure that each topic is covered in the quiz. The type of questions that can be on this quiz are: {data['question_type']}. The difficulty level of the quiz should be {data['difficulty_level']}. Be sure to name the quiz based on the topic such as 'Quiz: Topic'"
             if data['difficulty_level'] == 'elementary':
                 easy_q = """def greet(name):
                                 return "Hello, " + name + "!"

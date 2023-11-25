@@ -58,38 +58,6 @@ function QuizFormComponent() {
 		}
 	};
 
-/*
-	const handleChange = (e) => {
-		const { name, type, value, files } = e.target;
-
-		if (type === 'file') {
-            const file = files[0];
-        
-            // Allowed MIME types for PDF, PPT, and PPTX files
-            const allowedTypes = [
-                'application/pdf',
-                'application/vnd.ms-powerpoint',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-            ];
-    
-            // Check if the file type is allowed
-            if (!allowedTypes.includes(file.type)) {
-                alert('Please upload a PDF, PPT, or PPTX file.');
-                return;
-            }
-            
-            // Check if the file size is less than or equal to 5 MB
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than or equal to 5 MB.');
-                return;
-            }
-
-            setUploadedFileName(file.name);
-    
-            // If the file passes the checks, update the state
-            setFormData((prevState) => ({ ...prevState, [name]: file }));
-        }*/
-
 	function handleCheckboxChange(event) {
 
 		const { name, value } = event.target;

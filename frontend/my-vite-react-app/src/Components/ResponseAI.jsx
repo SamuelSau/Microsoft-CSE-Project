@@ -224,6 +224,10 @@ const createPdfForVariation = (variationContent, variationNumber) => {
 								/>
 							</button>
 						</div>
+						{/* Footer with disclaimer */}
+						<div className='ai-disclaimer-footer'>
+        <p className='disclaimer-text'>Warning: Content for questions and answer keys are AI-generated.</p>
+      </div>
 					</div>
 
 					{responseType === 'quiz' && (
