@@ -9,6 +9,12 @@ import os
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from msrest.authentication import CognitiveServicesCredentials
 from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
+from azure.cognitiveservices.vision.computervision import ComputerVisionClient
+from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
+from msrest.authentication import CognitiveServicesCredentials
+
+import time
+from io import BytesIO
 
 from .forms import UploadFileForm
 
@@ -55,11 +61,11 @@ def get_student_score(quiz, answer_key, student_answers):
                 the quiz, with explanation on where the student went wrong in incorrect responses. \
                 Give points awarded for each question. Keep in mind that the student answers will contain \
                 only the answers in a numbered order where an answer number corresponds to the question \
-                number from the quiz.\n" + "Quiz: " + quiz + "\n\nAnswer Key: " + answer_key + "\n\nStudent's Answers:" + student_answers},
+                number from the quiz. If the question only asks for an output, an explanation is not needed, simply check if the output matches the answer key. The answer key is the main point of reference when checking the student response. The student response will be along with the question, so please ignore any material that matches the question text, only grade the student response.\n" + "Quiz: " + quiz + "\n\nAnswer Key: " + answer_key + "\n\nStudent's Answers:" + student_answers},
 
             {"role": "assistant", "content": "Of course, here is the students responses structured in a \
                 format as Quiz Name, and Total Points Possible on the quiz, followed by an array where each element is in form of  Question Nnumber, Points Scored per question \
-                (if correct, full points; if partially correct, partial credit; if incorrect, 0 points), Feedback, Total Points scored where each line is separate by a new line:"
+                (if correct, full points; if partially correct, partial credit; if incorrect, 0 points) - Feedback, Total Points scored where each line is separate by a new line, and a final score that they recieved, such as '9/10' regarding points:"
             }
         ]
     }
@@ -93,18 +99,6 @@ def preprocess_image_for_ocr(image_bytes):
     kernel = np.ones((2,2), np.uint8)
     dilated_image = cv2.dilate(thresholded_image, kernel, iterations = 1)
 
-    # # Determine skew angle and deskew
-    # coords = np.column_stack(np.where(dilated_image > 0))
-    # angle = cv2.minAreaRect(coords)[-1]
-    # if angle < -45:
-    #     angle = -(90 + angle)
-    # else:
-    #     angle = -angle
-    # (h, w) = dilated_image.shape[:2]
-    # center = (w // 2, h // 2)
-    # M = cv2.getRotationMatrix2D(center, angle, 1.0)
-    # deskewed_image = cv2.warpAffine(dilated_image, M, (w, h),
-    #                                 flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
     # Convert the processed image back to bytes
     is_success, buffer = cv2.imencode(".png", dilated_image)
@@ -114,30 +108,43 @@ def preprocess_image_for_ocr(image_bytes):
     
     return io_buf
 
-
 def writing_to_text(image_bytes):
-    # Simplified function to extract text from an image
+    # Initialize ComputerVisionClient
     credentials = CognitiveServicesCredentials(VISION_KEY1)
     client = ComputerVisionClient(
         endpoint=f"https://{VISION_RESOURCE_NAME}.cognitiveservices.azure.com/",
         credentials=credentials
     )
 
-    # Use the recognize_printed_text_in_stream method
-    # results = client.recognize_printed_text_in_stream(image=BytesIO(image_bytes))
-    
-    results = client.recognize_printed_text_in_stream(image=image_bytes)
+    # Send the image to the API
+    if isinstance(image_bytes, BytesIO):
+        # If image_bytes is already a BytesIO object, use it directly
+        read_response = client.read_in_stream(image_bytes, raw=True)
+    else:
+        # Otherwise, convert it to BytesIO object
+        read_response = client.read_in_stream(BytesIO(image_bytes), raw=True)
 
-    # Extract and concatenate text from the results
+    # Get the operation location (URL with an ID at the end) from the response
+    read_operation_location = read_response.headers["Operation-Location"]
+    # Grab the ID from the URL
+    operation_id = read_operation_location.split("/")[-1]
+
+    # Wait for the operation to complete
+    while True:
+        read_result = client.get_read_result(operation_id)
+        if read_result.status not in ['notStarted', 'running']:
+            break
+        time.sleep(1)
+
+    # Extract and print text from the results
     text = ''
-    for region in results.regions:
-        for line in region.lines:
-            for word in line.words:
-                text += word.text + ' '
-            text += '\n'
-    
+    if read_result.status == OperationStatusCodes.succeeded:
+        for text_result in read_result.analyze_result.read_results:
+            for line in text_result.lines:
+                text += line.text + '\n'
     print(text)
     return text
+
 
 
 def upload_files_to_grade(request):
