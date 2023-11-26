@@ -20,6 +20,7 @@ function QuizFormComponent() {
 		question_type: [],
 		question_style: [],
 		limit_to_uploaded: false,
+		fixed_points_per_question: false,
 		total_points: '',
 		uploaded_material: null,
 	});
@@ -28,29 +29,28 @@ function QuizFormComponent() {
 		const { name, type, value, files } = e.target;
 
 		if (type === 'file') {
-            const file = files[0];
-        
-            // Allowed MIME types for PDF, PPT, and PPTX files
-            const allowedTypes = [
-                'application/pdf',
-                'application/vnd.ms-powerpoint',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-            ];
-    
-            // Check if the file type is allowed
-            if (!allowedTypes.includes(file.type)) {
-                alert('Please upload a PDF, PPT, or PPTX file.');
-                return;
-            }
-            
-            // Check if the file size is less than or equal to 5 MB
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than or equal to 5 MB.');
-                return;
-            }
+			const file = files[0];
+
+			// Allowed MIME types for PDF, PPT, and PPTX files
+			const allowedTypes = [
+				'application/pdf',
+				'application/vnd.ms-powerpoint',
+				'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+			];
+
+			// Check if the file type is allowed
+			if (!allowedTypes.includes(file.type)) {
+				alert('Please upload a PDF, PPT, or PPTX file.');
+				return;
+			}
+
+			// Check if the file size is less than or equal to 5 MB
+			if (file.size > 5 * 1024 * 1024) {
+				alert('File size must be less than or equal to 5 MB.');
+				return;
+			}
 
 			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
-			
 		} else if (type === 'checkbox') {
 			setFormData((prevState) => ({ ...prevState, [name]: e.target.checked }));
 		} else {
@@ -59,7 +59,6 @@ function QuizFormComponent() {
 	};
 
 	function handleCheckboxChange(event) {
-
 		const { name, value } = event.target;
 
 		// Create a copy of the current form data
@@ -107,12 +106,12 @@ function QuizFormComponent() {
 		const data = new FormData();
 		for (const key in formData) {
 			if (Array.isArray(formData[key])) {
-			  formData[key].forEach(value => data.append(key, value));
+				formData[key].forEach((value) => data.append(key, value));
 			} else {
-			  data.append(key, formData[key]);
+				data.append(key, formData[key]);
 			}
-		  }
-		
+		}
+
 		let endpoint = '/quiz_form/'; // default endpoint
 
 		//Update formData when we don't have a programming language and question type for no_code_quiz_form function
@@ -121,7 +120,7 @@ function QuizFormComponent() {
 			delete formData.programming_language;
 			delete formData.question_type;
 		}
-		
+
 		axios
 			.post(`http://127.0.0.1:8000/QAgenerator${endpoint}`, data, {
 				headers: {
@@ -369,7 +368,7 @@ function QuizFormComponent() {
 								<label id='label-header'>
 									<span
 										data-tooltip-id='label-tooltip-limit'
-										data-tooltip-content='Optional to checkbox and want to reflect uploaded material'
+										data-tooltip-content='Optional to checkbox to reflect uploaded material'
 									>
 										Limit to Uploaded:
 									</span>
@@ -381,6 +380,26 @@ function QuizFormComponent() {
 									/>
 								</label>
 							</div>
+							{/**Fixed points per question */}
+							<div className='form-field'>
+								<label id='label-header'>
+									<span
+										data-tooltip-id='label-tooltip-points'
+										data-tooltip-content='Optional to checkbox if points for each question should be equal or not'
+									>
+										Fixed Points Per Question:
+									</span>
+								
+								<input
+									type='checkbox'
+									id='fixedPointsPerQuestion'
+									name='fixed_points_per_question'
+									checked={formData.fixed_points_per_question}
+									onChange={handleChange}
+								/>
+								</label>
+							</div>
+
 							<div className='total-points-container'>
 								<label id='label-header' className='block-display'>
 									<span

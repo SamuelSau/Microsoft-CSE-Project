@@ -11,22 +11,37 @@ function AssignmentForm() {
 		programming_language: 'python',
 		constraints: '',
 		limit_to_uploaded: false,
+		fixed_points_per_question: false,
 		uploaded_material: null,
 	});
 
 	const [responseContent, setResponseContent] = useState('');
 	const [errorMessage, setErrorMessage] = useState('');
 
-	// Before making the POST request
-	// const csrfToken = document.cookie
-	// 	.split('; ')
-	// 	.find((row) => row.startsWith('csrftoken='))
-	// 	.split('=')[1];
-
 	const handleChange = (e) => {
 		const { name, type, value, files } = e.target;
 
 		if (type === 'file') {
+			const file = files[0];
+
+			// Allowed MIME types for PDF, PPT, and PPTX files
+			const allowedTypes = [
+				'application/pdf',
+				'application/vnd.ms-powerpoint',
+				'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+			];
+
+			// Check if the file type is allowed
+			if (!allowedTypes.includes(file.type)) {
+				alert('Please upload a PDF, PPT, or PPTX file.');
+				return;
+			}
+
+			// Check if the file size is less than or equal to 5 MB
+			if (file.size > 5 * 1024 * 1024) {
+				alert('File size must be less than or equal to 5 MB.');
+				return;
+			}
 			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
 		} else if (type === 'checkbox') {
 			setFormData((prevState) => ({ ...prevState, [name]: e.target.checked }));
@@ -116,43 +131,7 @@ function AssignmentForm() {
 						<form onSubmit={handleSubmit}>
 							<div className='quiz-upload-container'>
 								<Tooltip id='label-tooltip' />
-
-								<div className='upload-material'>
-									<label
-										id='label-header'
-										data-tooltip-id='label-tooltip-upload'
-										data-tooltip-content='Upload pdfs up to 5 MB'
-									>
-										Uploaded Material:
-									</label>
-									<input
-										type='file'
-										id='uploaded_material' // Add an ID to associate with the label
-										name='uploaded_material'
-										onChange={handleChange}
-										style={{ display: 'none' }} // Hide the default input
-									/>
-									<Tooltip id='label-tooltip-upload' />
-									<label
-										htmlFor='uploaded_material'
-										className='custom-upload-button'
-									>
-										<img
-											src='/svgs/upload-svgrepo-com.svg'
-											alt='Upload Icon'
-											className='upload-icon'
-										/>
-									</label>
-								</div>
-							</div>
-							<textarea
-								name='topic_explanation'
-								value={formData.topic_explanation}
-								onChange={handleChange}
-								placeholder='Briefly explain the topic you want to generate. For example, "generate questions about iterators in Python"'
-							/>
-
-							<div className='programming-languages'>
+								<div className='programming-languages'>
 								<label id='label-header'>
 									<span
 										data-tooltip-id='label-tooltip-language'
@@ -192,6 +171,42 @@ function AssignmentForm() {
 									)}
 								</div>
 							</div>
+								<div className='upload-material'>
+									<label
+										id='label-header'
+										data-tooltip-id='label-tooltip-upload'
+										data-tooltip-content='Upload pdfs up to 5 MB'
+									>
+										Uploaded Material:
+									</label>
+									<input
+										type='file'
+										id='uploaded_material' // Add an ID to associate with the label
+										name='uploaded_material'
+										onChange={handleChange}
+										style={{ display: 'none' }} // Hide the default input
+									/>
+									<Tooltip id='label-tooltip-upload' />
+									<label
+										htmlFor='uploaded_material'
+										className='custom-upload-button'
+									>
+										<img
+											src='/svgs/upload-svgrepo-com.svg'
+											alt='Upload Icon'
+											className='upload-icon'
+										/>
+									</label>
+								</div>
+							</div>
+							<textarea
+								name='topic_explanation'
+								value={formData.topic_explanation}
+								onChange={handleChange}
+								placeholder='Briefly explain the topic you want to generate. For example, "generate questions about iterators in Python"'
+							/>
+
+							
 							<textarea
 								name='constraints'
 								value={formData.constraints}
@@ -215,6 +230,25 @@ function AssignmentForm() {
 									/>
 								</label>
 							</div>
+							{/**Fixed points per question */}
+							<div className='form-field'>
+								<label id='label-header'>
+									<span
+										data-tooltip-id='label-tooltip-points'
+										data-tooltip-content='Optional to checkbox if points for each question should be equal or not'
+									>
+										Fixed Points Per Question:
+									</span>
+								<input
+									type='checkbox'
+									id='fixedPointsPerQuestion'
+									name='fixed_points_per_question'
+									checked={formData.fixed_points_per_question}
+									onChange={handleChange}
+								/>
+								</label>
+							</div>
+
 							<button type='submit' id='submitButton'>
 								Submit
 							</button>

@@ -67,9 +67,27 @@ def get_quiz_answer_key(response):
     }
     data = {
         "messages": [
-            {"role": "system", "content": "You are a highly skilled TA that grades quizzes and assignments for educators."},
+            {"role": "system", "content": "You are a highly skilled TA that grades quizzes for educators."},
             {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe quiz is as follows:\n" + quiz},
             {"role": "assistant", "content": "Here is the answer key for the quiz, with each answer showing the number of points per question:"}
+        ]
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+
+def get_assignment_answer_key(response):
+    assignment =  response['choices'][0]['message']['content']
+    url = f"https://{RESOURCE_NAME}.openai.azure.com/openai/deployments/{MODEL_NAME}/chat/completions?api-version=2023-05-15"
+    headers = {
+        "Content-Type": "application/json",
+        "api-key": f"{SECRET_KEY1}"
+    }
+    data = {
+        "messages": [
+            {"role": "system", "content": "You are a highly skilled TA that grades assignments for educators."},
+            {"role": "user", "content": "Given the following assignment, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the assignment. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe assignment is as follows:\n" + assignment},
+            {"role": "assistant", "content": "Here is the answer key for the assignment, with each answer showing the number of points per question:"}
         ]
     }
 
@@ -109,13 +127,9 @@ def no_code_quiz_form(request):
             user_message+= "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz. Do not include the answer key."
             user_message+= "\n Double check all questions to ensure that they are correct."
             
-
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
 
-            # html = turn_to_html(response['choices'][0]['message']['content'], answer_key['choices'][0]['message']['content'])
-
-            #return render(request, 'results.html', {"response": response, "answer_key": answer_key, "original_quiz": response['choices'][0]['message']['content'], "html": html})
             return JsonResponse({
                 "response": response,
                 "answer_key": answer_key,
@@ -123,10 +137,8 @@ def no_code_quiz_form(request):
             })
     else:
         return JsonResponse({"errors": form.errors}, status=400)
-    #     form = NoCodeQuizForm()
     
     return JsonResponse({"message": "Method not allowed"}, status=405)
-    #return render(request, 'quiz_form.html', {"form": form})
 
 @csrf_exempt
 def quiz_form(request):
@@ -271,8 +283,16 @@ def assignment_form(request):
                 user_message += f" The specified language is {data['other_language']}."
 
             response = send_message_to_openai(user_message)
+            answer_key = get_assignment_answer_key(response)
+
             response["type"] = "assignment"
-            return JsonResponse({"assignment": response})
+            
+            return JsonResponse({
+                "assignment": response,
+                "answer_key": answer_key,
+                "original_assignment": response['choices'][0]['message']['content']
+            })
+            
         else:
             return JsonResponse({"errors": form.errors}, status=400)
     

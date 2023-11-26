@@ -17,6 +17,7 @@ import spacy
 import nltk
 from nltk.tokenize import word_tokenize
 from typing import List
+from django.http import HttpResponse
 
 SECRET_KEY1 = config("SECRET_KEY1")
 SECRET_KEY2 = config("SECRET_KEY2")
@@ -25,6 +26,7 @@ RESOURCE_NAME = config("RESOURCE_NAME")
 MODEL_NAME = config("MODEL_NAME")
 
 nltk.download('punkt')
+
 
 def limit_tokens_in_string(text: str, max_tokens: int) -> str:
     tokens = word_tokenize(text)
@@ -45,7 +47,27 @@ def extract_text_from_pdf(file):
     return text
 
 @csrf_exempt
+def get_variant_answer_key(response):
+    print(response)
+    quiz =  response['choices'][0]['message']['content']
+    url = f"https://{RESOURCE_NAME}.openai.azure.com/openai/deployments/{MODEL_NAME}/chat/completions?api-version=2023-05-15"
+    headers = {
+        "Content-Type": "application/json",
+        "api-key": f"{SECRET_KEY1}"
+    }
+    data = {
+        "messages": [
+            {"role": "system", "content": "You are a highly skilled TA that grades quizzes for educators. Please analyze the quiz below and if and only if the questions for the quiz are unusual and not formatted, please create three questions if you have to in the format of the quiz."},
+            {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. \nThe quiz is as follows:\n" + quiz},
+            {"role": "assistant", "content": "Here is the answer key for the quiz."}
+        ]
+    }
+    variantResponse = requests.post(url, headers=headers, json=data)
+    return variantResponse.json()
+
+@csrf_exempt
 def create_quiz_variations(file_content: str, num_variations: int):
+    
     url = f"https://{RESOURCE_NAME}.openai.azure.com/openai/deployments/{MODEL_NAME}/chat/completions?api-version=2023-05-15"
 
     headers = {
@@ -55,14 +77,22 @@ def create_quiz_variations(file_content: str, num_variations: int):
 
     data = {
         "messages": [
-            {"role": "system", "content": "You are a helpful assistant that takes previous exams or content, and creates variations for quiz material. The quizzes should reflect the same level of difficulty and same concepts as shown in the content. If you are not given an exam, please create three questions out of the content you are sent, where each question is a random topic from the provided content. Please ensure that the response you are sending makes sense and is a quiz that could be given to a student."},
-            {"role": "user", "content": "Keep the formatting the exact same and do not stray too far from what is seen in the provided quiz. Include the original quiz in the response so we can visually see what the changes are from. Also, if any code is written, please surround it with '```' on each side. I want the original quiz at the top, with the following number of variations of the quiz. Please make exactly " + str(num_variations) + " variations of the following quiz:\n\n" + file_content},
-            {"role": "assistant", "content": "Understood, I am a helpful assisstant that ensures that the content for the quiz/exam variation makes sense and has at least three questions. Since I might be given lots of keywords, I should try to analyze and create a question out of those concepts. Here each variation having a title 'Variation #' at the beginning and questions do not need to be numbered. I will check if any code blocks exist, so they must be surrounded by three '`' to indicate it is code, but otherwise do not."}
+            {"role": "system", "content": f"You are a helpful assistant that takes previous exams, and creates variations, allowing the quizes to be the exact same level of difficulty and same concepts, just in different order and would make it diffictult for a student to cheat. Do not only just output the relevant keywords and topics, but make sure to create three reasonable questions on those topics."},
+            {"role": "user", "content": "Keep the formatting the exact same and do not stray too far from what is seen in the provided quiz. Include the original quiz in the response so we can visually see what the changes are from. Also, if any code is written, please surround it with '```' on each side so I can format it properly on the front end. I want the original quiz at the top, with the following number of variations of the quiz. Please make exactly " + str(num_variations) + " variations of the following quiz:\n\n" + file_content},
+            {"role": "assistant", "content": "Here are the variations of the quiz, each variation having a title 'Variation #' at the beginning, and all code blocks surrounded by three '`' to indicate it is code:"}
         ]
     }
 
     response = requests.post(url, headers=headers, json=data)
-    return response.json()
+    response_json = response.json()  # Get the JSON content of the response
+    answer_key = get_variant_answer_key(response_json)
+    combined_data = {
+        "response": response_json,
+        "answer_key": answer_key
+    }
+
+    # Convert the combined dictionary to a JSON string
+    return combined_data
     
 # Set up logging
 logger = logging.getLogger(__name__)
