@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-76qngp0n!^-ye=g9=ohggmx57m9m253=ege$*)hpnr6z*#s*v!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['professentials.azurewebsites.net']
 
 # Application definition
 INSTALLED_APPS = [
@@ -51,10 +52,8 @@ MIDDLEWARE = [
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8001",
-]
-CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8001"]
+#CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:8001",]
+#CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:8001"]
 
 ROOT_URLCONF = 'AzureBackend.urls'
 
