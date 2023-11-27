@@ -8,7 +8,7 @@ function AssignmentForm() {
 	const navigate = useNavigate();
 	const [formData, setFormData] = useState({
 		topic_explanation: '',
-		programming_language: 'python',
+		programming_language: '',
 		constraints: '',
 		limit_to_uploaded: false,
 		fixed_points_per_question: false,
@@ -74,9 +74,7 @@ function AssignmentForm() {
 
 		// Validation check for uploading file
 		if (formData.limit_to_uploaded && !formData.uploaded_material) {
-			setErrorMessage(
-				"You must upload a file when 'Limit to Uploaded' is checked."
-			);
+			
 			alert(
 				"You must upload a file when 'Limit to Uploaded' is checked.\nUncheck if you do not want to upload a file"
 			);
@@ -87,7 +85,19 @@ function AssignmentForm() {
 
 		const data = new FormData();
 		for (const key in formData) {
+			if (
+				formData.limit_to_uploaded &&
+				key !== 'uploaded_material' &&
+				key !== 'limit_to_uploaded' &&
+				key !== 'fixed_points_per_question'
+			) {
+				continue; // Skip other fields if limit_to_uploaded is true
+			}
+			if (Array.isArray(formData[key])) {
+				formData[key].forEach((value) => data.append(key, value));
+			} else {
 			data.append(key, formData[key]);
+			}
 		}
 		axios
 			.post(

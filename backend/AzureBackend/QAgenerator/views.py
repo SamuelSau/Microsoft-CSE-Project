@@ -51,7 +51,8 @@ def send_message_to_openai(message_content):
     data = {
         "messages": [
             {"role": "system", "content": "You are a helpful assistant that generates quizzes and assignments for educators."},
-            {"role": "user", "content": message_content}
+            {"role": "assistant", "content": "Here is the quiz or assignment you requested. Remember to keep the formatting consistent. Do not include the answers with the questions, just have the questions."},
+            {"role": "user", "content": f"Here is the {message_content} for you to generate the quiz or assignment. Do not provide an answer key, just have the questions."},
         ]
     }
 
@@ -69,7 +70,7 @@ def get_quiz_answer_key(response):
         "messages": [
             {"role": "system", "content": "You are a highly skilled TA that grades quizzes for educators."},
             {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe quiz is as follows:\n" + quiz},
-            {"role": "assistant", "content": "Here is the answer key for the quiz, with each answer showing the number of points per question:"}
+            {"role": "assistant", "content": "Here is the answer key for the quiz, with each answer showing the number of points per question. Here is the answer key for the quiz corresponding respectively to each question. The formatting for the response will be: Original Quiz: 1. 2. where each number is the answer to the question. Do not include the questions with the answers, just have the answers."}
         ]
     }
 
@@ -87,32 +88,38 @@ def get_assignment_answer_key(response):
         "messages": [
             {"role": "system", "content": "You are a highly skilled TA that grades assignments for educators."},
             {"role": "user", "content": "Given the following assignment, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the assignment. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe assignment is as follows:\n" + assignment},
-            {"role": "assistant", "content": "Here is the answer key for the assignment, with each answer showing the number of points per question:"}
+            {"role": "assistant", "content": "Here is the answer key for the assignment corresponding respectively to each question. The formatting for the response will be: Original Assignment: 1. 2. where each number is the answer to the question. Do not include the questions with the answers, just have the answers. The top of the response should be formatted as 'Assignment: Topic'.'"}
         ]
     }
 
     response = requests.post(url, headers=headers, json=data)
     return response.json()
 
+@csrf_exempt
 def no_code_quiz_form(request):
-
     if request.method == "POST":
         form = NoCodeQuizForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
             
             user_message = ""
-            if 'uploaded_material' in request.FILES:
-                uploaded_file = data['uploaded_material']
-                entities = extract_content_from_file(uploaded_file)
-                file_data = "".join(map(str, entities))
-                file_data = limit_tokens_in_string(file_data,4500) +"\n"
-                user_message = "Attached is a chunked form of a document submitted by a professor:\n" + file_data
-                user_message += "\n\n Using this chunked data only consider the matierial that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a quiz."
-                
+        
             user_message += ".\n"
 
-            user_message += f"Write a {data['difficulty_level']} difficulty level quiz with exactly {data['num_questions']} questions, do not go over this number. The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of the topic and complexities behind the question. The topics for this quiz are {data['topic_explanation']}, so ensure that each topic is covered in the quiz. The difficulty level of the quiz should be {data['difficulty_level']}."
+            user_message = f"You must write a quiz. Be sure to name the quiz based on the topic such as 'Quiz: Topic'."
+
+            if data['difficulty_level']:
+                user_message += "Write a non-coding quiz with a difficulty level of " + data['difficulty_level'] + "."
+            
+            if data['num_questions']:
+                user_message += " The quiz should have exactly " + str(data['num_questions']) + " questions, do not go over this number."
+            
+            if data['question_style']:
+                user_message += " The quiz should be in a " + data['question_style'] + " format that ensures that the student is tested on their understanding of the topic and complexities behind the question."
+            
+            if data['topic_explanation']:
+                user_message += " The topics for this quiz are " + data['topic_explanation'] + ", so ensure that each topic is covered in the quiz."
+
             if data['difficulty_level'] == 'elementary':
                 user_message+= " The questions should be simple and straightforward."
             elif data['difficulty_level'] == 'intermediate':
@@ -127,6 +134,15 @@ def no_code_quiz_form(request):
             user_message+= "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz. Do not include the answer key."
             user_message+= "\n Double check all questions to ensure that they are correct."
             
+            if 'uploaded_material' in request.FILES:
+                uploaded_file = data['uploaded_material']
+                entities = extract_content_from_file(uploaded_file)
+                file_data = "".join(map(str, entities))
+                file_data = limit_tokens_in_string(file_data,4500) +"\n"
+                user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
+                print(file_data)
+                user_message += "\n\n Analyze these topics and use only that list to generate a quiz that has NO CODING involved. Do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create a non-coding quiz for students."
+
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
 
@@ -148,18 +164,26 @@ def quiz_form(request):
             data = form.cleaned_data
 
             user_message = ""
-            if 'uploaded_material' in request.FILES: 
-                uploaded_file = data['uploaded_material']
-                #topics_to_pick = data['topic_explanation']
-                entities = extract_content_from_file(uploaded_file)
-                file_data = "".join(map(str, entities))
-                file_data = limit_tokens_in_string(file_data,4500) +"\n"
-                user_message = "Attached is a chunked form of a document submitted by a professor:\n" + file_data
-                user_message += "\n\n Using this chunked data only consider the material that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a quiz."
                 
             user_message += ".\n"
 
-            user_message = f"Write a coding quiz in the programming language {data['programming_language']} with exactly {data['num_questions']} questions, do not go over this number. The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of syntax and logic. The topics for this quiz are {data['topic_explanation']}. So ensure that each topic is covered in the quiz. The type of questions that can be on this quiz are: {data['question_type']}. The difficulty level of the quiz should be {data['difficulty_level']}. Be sure to name the quiz based on the topic such as 'Quiz: Topic'"
+            user_message = f"You must write a quiz. Be sure to name the quiz based on the topic such as 'Quiz: Topic'."
+            
+            if data['programming_language']:
+                user_message+= f"The quiz should be in the programming language specified as {data['programming_language']}."
+            
+            if data['num_questions']:
+                user_message+= f" The quiz should have exactly {data['num_questions']} questions, do not go over this number."
+            
+            if data['question_style']:
+                user_message+= f" The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of syntax and logic."
+
+            if data['topic_explanation']:
+                user_message+= f" The topics for this quiz are {data['topic_explanation']}. So ensure that each topic is covered in the quiz."
+            
+            if data['question_type']:
+                user_message+= f" The type of questions that can be on this quiz are: {data['question_type']}."
+
             if data['difficulty_level'] == 'elementary':
                 easy_q = """def greet(name):
                                 return "Hello, " + name + "!"
@@ -195,16 +219,27 @@ def quiz_form(request):
             if data['question_style'] == 'short_answer' or (data['question_style'] == 'multiple_choice' and data['question_style'] == 'short_answer'):
                 user_message+= " The types of short answer style questions present in the quiz. The first is questions that give the student a very small snippet of code in the language selected and they must respond with what it will output. The second is questions that ask for a very small snippet of code in the language that fulfils a request."
             
-            user_message+= f"\nThis quiz will be graded for a total of {data['total_points']} points. Please show the total points at the top of the quiz."
-            if data['fixed_points_per_question']:
-                user_message+= " Each question will be worth the same amount of points."
-            else:
-                user_message+= " Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
-            user_message+= "Please include the number of points each question is worth in the question itself. For example, 'Question 1 (5 Points)'."
+            if data['total_points']:
+                user_message+= f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
 
-            user_message+= "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz."
-            user_message+= "\n Double check all questions including the code snippets to ensure that they are correct."
+            if data['fixed_points_per_question']:
+                user_message+= "Each question will be worth the same amount of points."
+            else:
+                user_message+= "Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
+            user_message+= "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
+
+            user_message+= "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself."
+            user_message+= "\n Double check all questions including the code snippets to ensure that they are correct. "
             
+            if 'uploaded_material' in request.FILES: 
+                uploaded_file = data['uploaded_material']
+                entities = extract_content_from_file(uploaded_file)
+                file_data = "".join(map(str, entities))
+                file_data = limit_tokens_in_string(file_data,4500) +"\n"
+                print(file_data)
+                user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
+                user_message += "\n\n Analyze these topics and use only that list to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create a quiz for students."
+
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
             response["type"] = "quiz"
@@ -267,21 +302,26 @@ def assignment_form(request):
             data = form.cleaned_data
 
             user_message = ""
+           
+            user_message += ".\n"
+
+            if data['topic_explanation']:
+                user_message+= f"The topics for this assignment are {data['topic_explanation']}. So ensure that each topic is covered in the assignment."
+
+            if data['programming_language']:
+                user_message+= f"The assignment should be in the programming language specified as {data['programming_language']}."
+
+            if data['programming_language'] == 'other':
+                user_message += f" The specified language is {data['other_language']}."
+
             if 'uploaded_material' in request.FILES:
                 uploaded_file = data['uploaded_material']
                 entities = extract_content_from_file(uploaded_file)
                 file_data = "".join(map(str, entities))
                 file_data = limit_tokens_in_string(file_data,4500) +"\n"
-                user_message = "Attached is a chunked form of a document submitted by a professor:\n" + file_data
-                user_message += "\n\n Using this chunked data only consider the matierial that will fit the topic explanation and requests from the professor mentioned below. You will be using this data to generate a assignment."
+                user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
+                user_message += "\n\n Analyze these topics and use only that list to generate an assignment, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create an assignment for students."
                 
-            user_message += ".\n"
-
-            user_message = f"Generate an assignment on {data['topic_explanation']} in {data['programming_language']} with the following constraints: {data['constraints']}."
-
-            if data['programming_language'] == 'other':
-                user_message += f" The specified language is {data['other_language']}."
-
             response = send_message_to_openai(user_message)
             answer_key = get_assignment_answer_key(response)
 

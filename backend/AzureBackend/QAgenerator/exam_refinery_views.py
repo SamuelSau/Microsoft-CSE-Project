@@ -57,9 +57,9 @@ def get_variant_answer_key(response):
     }
     data = {
         "messages": [
-            {"role": "system", "content": "You are a highly skilled TA that grades quizzes for educators. Please analyze the quiz below and if and only if the questions for the quiz are unusual and not formatted, please create three questions if you have to in the format of the quiz."},
+            {"role": "system", "content": "You are a highly skilled TA that grades quizzes for educators. Please analyze the quiz below and if and only if the formatting is unusual and not a quiz structure, please generate a total of 3 questions related to any 3 topics from that list. If you are given the questions, please give the correct answers to the respective questions also including if multiple variations were specified."},
             {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. \nThe quiz is as follows:\n" + quiz},
-            {"role": "assistant", "content": "Here is the answer key for the quiz."}
+            {"role": "assistant", "content": "Here is the answer key for the quiz corresponding respectively to each question. The formatting for the response will be: Original Quiz: 1. 2. Variation 1: 1. 2. Variation 2: 1. 2. Where 1 and 2 are the answers to the questions, make sure each answer are numbered that corresponds to that question. Do not include the questions with the answers, just have the answers."}
         ]
     }
     variantResponse = requests.post(url, headers=headers, json=data)
@@ -77,9 +77,9 @@ def create_quiz_variations(file_content: str, num_variations: int):
 
     data = {
         "messages": [
-            {"role": "system", "content": f"You are a helpful assistant that takes previous exams, and creates variations, allowing the quizes to be the exact same level of difficulty and same concepts, just in different order and would make it diffictult for a student to cheat. Do not only just output the relevant keywords and topics, but make sure to create three reasonable questions on those topics."},
-            {"role": "user", "content": "Keep the formatting the exact same and do not stray too far from what is seen in the provided quiz. Include the original quiz in the response so we can visually see what the changes are from. Also, if any code is written, please surround it with '```' on each side so I can format it properly on the front end. I want the original quiz at the top, with the following number of variations of the quiz. Please make exactly " + str(num_variations) + " variations of the following quiz:\n\n" + file_content},
-            {"role": "assistant", "content": "Here are the variations of the quiz, each variation having a title 'Variation #' at the beginning, and all code blocks surrounded by three '`' to indicate it is code:"}
+            {"role": "system", "content": "You are a helpful assistant that takes previous exams and creates variations as quizzes to be the exact same level of difficulty and same concepts. The order of the questions and difficulty should vary for each student to make it difficult to cheat. Do not provide the answer key here."},
+            {"role": "user", "content": "Keep the formatting the exact same and do not stray too far from what is seen in the quiz. Firstly, create an original quiz then then include the original quiz in the response on top. Also, if any code is written, please surround it with '```' on each side so I can format it properly on the front end. I want the original quiz at the top, with the following number of variations of the quiz. Please make exactly " + str(num_variations) + " variations of the following content:\n\n" + file_content},
+            {"role": "assistant", "content": f"Here are the variations of the quiz, each variation having a title 'Variation #' at the beginning, and all code blocks surrounded by three '`' to indicate it is code. Here is an example of the formatting for the response: Original Quiz: Q1. Q2. Variation 1: Q1. Q2. Variation 2: Q1. Q2. Q1 and Q2 are followed with different questions. Do not include the answer key, only the questions! Please remember to make exactly {str(num_variations)}"}
         ]
     }
 

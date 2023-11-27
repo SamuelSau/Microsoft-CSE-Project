@@ -30,92 +30,79 @@ function ResponseAI(props) {
 		}
 	};
 
-	// Function to parse answer keys for each variation
-const parseAnswerKeys = (messageContent) => {
-	const variationAnswerKeys = {};
-	const variationSections = messageContent.split(/Variation \d+:/);
+// Helper function to add text with page overflow handling
+const addTextWithPageHandling = (doc, text, maxWidth) => {
+	let yPos = 10; // Starting y-position
+	const lines = doc.splitTextToSize(text, maxWidth);
 	
-	variationSections.forEach((section, index) => {
-	  if (index === 0) return; // Skip the first section as it's likely the main quiz answer key
-	  variationAnswerKeys[`Variation ${index}`] = section.trim();
+	lines.forEach(line => {
+	  if (yPos > 280) { // Check if the current position is near the bottom of the page
+		doc.addPage();
+		yPos = 10; // Reset the position for the new page
+	  }
+	  doc.text(line, 10, yPos);
+	  yPos += 10; // Increment the y-position for the next line
 	});
-  
-	return variationAnswerKeys;
   };
   
-  const answerKeys = parseAnswerKeys(messageContent);
+  const createPdfForVariation = (variationContent, variationNumber, answerKey) => {
+	const doc = new jsPDF();
+	const maxWidth = 180; // adjust as needed
   
-
-	// Helper function to create a PDF for a single variation
-	const createPdfForVariation = (variationContent, variationNumber) => {
-		const doc = new jsPDF();
-		const maxWidth = 180; // adjust as needed
-	  
-		// Add the variation content
-		const formattedVariationContent = doc.splitTextToSize(variationContent, maxWidth);
-		const answerKey = answerKeys[`Variation ${variationNumber}`];// Get the answer key for this variation
-		doc.text(formattedVariationContent, 10, 10);
-	  	
-		if (answerKey) {
-		  // Add a new page for the answer key
-		  doc.addPage();
-		  doc.text('Answer Key', 10, 10);
-		  const formattedAnswerKey = doc.splitTextToSize(answerKey, maxWidth);
-		  doc.text(formattedAnswerKey, 10, 20);
-		}
-	  
-		// Save the PDF
-		doc.save(`variation_${variationNumber}.pdf`);
-	  };
-
-	// Modified downloadPdf function
-	const downloadPdf = () => {
-		if (responseType === 'quiz' || responseType === 'assignment') {
-			const doc = new jsPDF();
-			const maxWidth = 180; // Adjust this value as needed
-			let content, title, answerKey;
-
-			if (responseType === 'quiz') {
-				title = 'Quiz';
-				content = originalQuiz;
-				answerKey = messageContent;
-				
-			} else if (responseType === 'assignment') {
-				title = 'Assignment';
-				content = originalAssignment;
-				answerKey = messageContent;
-			}
-
-			const splitContent = doc.splitTextToSize(content, maxWidth);
-			doc.text(splitContent, 10, 20);
-
-			// Add a new page for the answer key
-			doc.addPage();
-			doc.text('Answer Key', 10, 10);
-			const splitAnswerKey = doc.splitTextToSize(answerKey, maxWidth);
-			doc.text(splitAnswerKey, 10, 20);
-
-			doc.save(`${title.toLowerCase()}_response.pdf`);
-		} else if (responseType === 'variations') {
-			const variationRegex = /Variation \d+/g;
-			let startIndex = 0;
-			let variationNumber = 1;
-
-			quizVariations.split(variationRegex).forEach((variation, index) => {
-				if (index === 0) return; // Skip the first split as it's likely to be empty
-
-				const endIndex = quizVariations.indexOf(variation, startIndex);
-				const variationContent = quizVariations.substring(
-					startIndex,
-					endIndex !== -1 ? endIndex : undefined
-				);
-				startIndex = endIndex !== -1 ? endIndex : quizVariations.length;
-
-				createPdfForVariation(variationContent, variationNumber);
-				variationNumber++;
-			});
-		}
-	};
+	addTextWithPageHandling(doc, variationContent, maxWidth);
+  
+	if (answerKey) {
+	  doc.addPage(); // Start the answer key on a new page
+	  addTextWithPageHandling(doc, 'Answer Key\n' + answerKey, maxWidth);
+	}
+  
+	doc.save(`variation_${variationNumber}.pdf`);
+  };
+  
+  const downloadPdf = () => {
+	if (responseType === 'quiz' || responseType === 'assignment') {
+	  const doc = new jsPDF();
+	  const maxWidth = 180;
+	  let content, title, answerKey;
+  
+	  if (responseType === 'quiz') {
+		title = 'Quiz';
+		content = originalQuiz;
+		answerKey = messageContent;
+	  } else if (responseType === 'assignment') {
+		title = 'Assignment';
+		content = originalAssignment;
+		answerKey = messageContent;
+	  }
+  
+	  addTextWithPageHandling(doc, content, maxWidth);
+  
+	  doc.addPage(); // Start the answer key on a new page
+	  addTextWithPageHandling(doc, 'Answer Key\n' + answerKey, maxWidth);
+  
+	  doc.save(`${title.toLowerCase()}_response.pdf`);
+	} else if (responseType === 'variations') {
+	  const variationRegex = /Variation \d+/g;
+	  let startIndex = 0;
+	  let variationNumber = 1;
+  
+	  quizVariations.split(variationRegex).forEach((variation, index) => {
+		if (index === 0) return;
+  
+		const endIndex = quizVariations.indexOf(variation, startIndex);
+		const variationContent = quizVariations.substring(
+		  startIndex,
+		  endIndex !== -1 ? endIndex : undefined
+		);
+		startIndex = endIndex !== -1 ? endIndex : quizVariations.length;
+  
+		const answerKey = answerKeys[`Variation ${variationNumber}`];
+		createPdfForVariation(variationContent, variationNumber, answerKey);
+		variationNumber++;
+	  });
+	}
+  };
+  
 
 	const handleModify = async (e) => {
 		try {

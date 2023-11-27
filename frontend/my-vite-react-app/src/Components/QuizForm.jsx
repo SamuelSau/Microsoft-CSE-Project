@@ -13,9 +13,9 @@ function QuizFormComponent() {
 	const [errorMessage, setErrorMessage] = useState(null);
 
 	const [formData, setFormData] = useState({
-		difficulty_level: 'elementary',
+		difficulty_level: '',
 		topic_explanation: '',
-		programming_language: 'python', // set default to python,
+		programming_language: '', // set default to python,
 		num_questions: '',
 		question_type: [],
 		question_style: [],
@@ -105,6 +105,14 @@ function QuizFormComponent() {
 
 		const data = new FormData();
 		for (const key in formData) {
+			if (
+				formData.limit_to_uploaded &&
+				key !== 'uploaded_material' &&
+				key !== 'limit_to_uploaded' &&
+				key !== 'fixed_points_per_question'
+			) {
+				continue; // Skip other fields if limit_to_uploaded is true
+			}
 			if (Array.isArray(formData[key])) {
 				formData[key].forEach((value) => data.append(key, value));
 			} else {
@@ -379,6 +387,7 @@ function QuizFormComponent() {
 										onChange={handleChange}
 									/>
 								</label>
+								<Tooltip id='label-tooltip-limit' />
 							</div>
 							{/**Fixed points per question */}
 							<div className='form-field'>
@@ -389,26 +398,27 @@ function QuizFormComponent() {
 									>
 										Fixed Points Per Question:
 									</span>
-								
-								<input
-									type='checkbox'
-									id='fixedPointsPerQuestion'
-									name='fixed_points_per_question'
-									checked={formData.fixed_points_per_question}
-									onChange={handleChange}
-								/>
+
+									<input
+										type='checkbox'
+										id='fixedPointsPerQuestion'
+										name='fixed_points_per_question'
+										checked={formData.fixed_points_per_question}
+										onChange={handleChange}
+									/>
 								</label>
+								<Tooltip id='label-tooltip-points' />
 							</div>
 
 							<div className='total-points-container'>
 								<label id='label-header' className='block-display'>
 									<span
-										data-tooltip-id='label-tooltip-points'
+										data-tooltip-id='label-tooltip-totalpoints'
 										data-tooltip-content='Enter number of points that quiz/assignment should be worth'
 									>
 										Total Points:
 									</span>
-									<Tooltip id='label-tooltip-points' />
+
 									<input
 										type='number'
 										name='total_points'
@@ -418,6 +428,7 @@ function QuizFormComponent() {
 										className='quiz-input'
 									/>
 								</label>
+								<Tooltip id='label-tooltip-totalpoints' />
 							</div>
 							{errorMessage && <p className='error-message'>{errorMessage}</p>}
 							<button type='submit' id='submitButton'>

@@ -27,10 +27,10 @@ class QuizForm(forms.Form):
     topic_explanation = forms.CharField(max_length=100, required=False)
     
     # Select dropdowns
-    programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select, required=True)
+    programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select, required=False)
     other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'})) #fill out if different language than what's shown
 
-    difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.Select, required=True)
+    difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.Select, required=False)
     num_questions = forms.IntegerField(min_value=1, max_value=50, required=False)
     
     total_points = forms.IntegerField(min_value=1, max_value=100, required=False)
@@ -45,12 +45,12 @@ class QuizForm(forms.Form):
 class AssignmentForm(forms.Form):
     LANGUAGE_CHOICES = (("python", "Python"), ("java", "Java"), ("c", "C"), ("c++", "C++"), ("other", "Other"), ("no specific language, No specific language"))
 
-    topic_explanation = forms.CharField(max_length=100)
-    programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select)
+    topic_explanation = forms.CharField(max_length=100, required=False)
+    programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select, required=False)
     
     other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'}))
     
-    constraints = forms.CharField(max_length=10000)
+    constraints = forms.CharField(max_length=10000, required=False)
     limit_to_uploaded = forms.BooleanField(required=False, label="Limit to uploaded material?")
     uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")
 
