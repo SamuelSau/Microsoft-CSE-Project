@@ -105,25 +105,34 @@ function QuizFormComponent() {
 
 		const data = new FormData();
 		for (const key in formData) {
-			if (
-				formData.limit_to_uploaded &&
-				key !== 'uploaded_material' &&
-				key !== 'limit_to_uploaded' &&
-				key !== 'fixed_points_per_question'
-			) {
-				continue; // Skip other fields if limit_to_uploaded is true
+			// If limit_to_uploaded is true and uploaded_material is not set, skip other fields
+			if (formData.limit_to_uploaded && !formData.uploaded_material && key !== 'limit_to_uploaded' && key !== 'fixed_points_per_question') {
+				continue;
 			}
+		
+			// If the field is an array (like question_type) and it's empty, skip it
+			if (Array.isArray(formData[key]) && formData[key].length === 0) {
+				continue;
+			}
+		
+			// If the field is a string and it's empty, skip it
+			if (typeof formData[key] === 'string' && formData[key].trim() === '') {
+				continue;
+			}
+		
+			// Append non-empty fields to the FormData object
 			if (Array.isArray(formData[key])) {
 				formData[key].forEach((value) => data.append(key, value));
 			} else {
 				data.append(key, formData[key]);
 			}
 		}
+		
 
 		let endpoint = '/quiz_form/'; // default endpoint
 
 		//Update formData when we don't have a programming language and question type for no_code_quiz_form function
-		if (formData.programming_language === 'no specific language') {
+		if (formData.programming_language === 'no coding') {
 			endpoint = '/no_code_quiz_form/';
 			delete formData.programming_language;
 			delete formData.question_type;
@@ -132,12 +141,11 @@ function QuizFormComponent() {
 		axios
 			.post(`http://127.0.0.1:8000/QAgenerator${endpoint}`, data, {
 				headers: {
-					//'X-CSRFToken': csrfToken,
 					'Content-Type': 'multipart/form-data',
 				},
-				//withCredentials: true,
 			})
 			.then((response) => {
+				console.log(formData)
 				setResponseContent(response.data);
 				navigate('/response', { state: { responseData: response.data } });
 			})
@@ -163,7 +171,12 @@ function QuizFormComponent() {
 			<div className='quiz-ai-container'>
 				<div className='form-container'>
 					<div className='inner-container'>
-						<h1>Quiz Form</h1>
+						{/*if it is not coding, then set header to No Coding Quiz */}
+						{formData.programming_language === 'no coding' ? (
+							<h1>No Coding Quiz Form</h1>
+						) : 
+							<h1>Coding Quiz Form</h1>
+}
 						<form onSubmit={handleSubmit}>
 							<div className='quiz-upload-container'>
 								<label
@@ -236,7 +249,7 @@ function QuizFormComponent() {
 											['java', 'Java'],
 											['c', 'C'],
 											['other', 'Other'],
-											['no specific language', 'No specific language'],
+											['no coding', 'No coding'],
 										].map(([value, label]) => (
 											<option key={value} value={value}>
 												{label}
@@ -278,7 +291,7 @@ function QuizFormComponent() {
 									<option value='advanced'>Advanced</option>
 								</select>
 							</div>
-							{formData.programming_language !== 'no specific language' && (
+							{formData.programming_language !== 'no coding' && (
 								<div className='question-type'>
 									<label id='label-header'>
 										<span

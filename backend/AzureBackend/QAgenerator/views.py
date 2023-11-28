@@ -240,6 +240,8 @@ def quiz_form(request):
                 user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
                 user_message += "\n\n Analyze these topics and use only that list to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create a quiz for students."
 
+            if data['programming_language']:
+                user_message+= f" Just to remind you that the questions for the quiz should be in the programming language specified as {data['programming_language']}, but also maintaining the relevance of that topic."
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
             response["type"] = "quiz"

@@ -228,7 +228,7 @@ function ResponseAI(props) {
 					<div className='questions'>
 						{responseType === 'quiz' ? (
 							<div>
-								<h1>{quizName}</h1>
+								<h1>Quiz</h1>
 								<pre>{originalQuiz}</pre>
 							</div>
 						) : responseType === 'assignment' ? (
