@@ -52,6 +52,8 @@ class AssignmentForm(forms.Form):
     total_points = forms.IntegerField(min_value=1, max_value=100, required=False)
 
     constraints = forms.CharField(max_length=10000, required=False)
+    fixed_points_per_question = forms.BooleanField(required=False)
+
     limit_to_uploaded = forms.BooleanField(required=False, label="Limit to uploaded material?")
     uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")
 

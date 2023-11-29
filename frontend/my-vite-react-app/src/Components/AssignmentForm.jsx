@@ -13,6 +13,7 @@ function AssignmentForm() {
 		limit_to_uploaded: false,
 		fixed_points_per_question: false,
 		uploaded_material: null,
+		total_points: '',
 	});
 
 	const [responseContent, setResponseContent] = useState('');
@@ -116,7 +117,6 @@ function AssignmentForm() {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-				withCredentials: true,
 			})
 			.then((response) => {
 				setResponseContent(response.data);
