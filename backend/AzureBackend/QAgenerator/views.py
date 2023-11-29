@@ -143,6 +143,12 @@ def no_code_quiz_form(request):
                 print(file_data)
                 user_message += "\n\n Analyze these topics and use only that list to generate a quiz that has NO CODING involved. Do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create a non-coding quiz for students."
 
+            if data['fixed_points_per_question']:
+                user_message+= "Each question will be worth the same amount of points. Please also make sure to label the amount of points for each questions (# points) where # is number of points assigned to that question."
+            
+            if data['total_points']:
+                user_message+= "The total points for this quiz is " + str(data['total_points']) + ". Please show the total points at the top of the quiz."
+
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
 
@@ -219,15 +225,6 @@ def quiz_form(request):
             if data['question_style'] == 'short_answer' or (data['question_style'] == 'multiple_choice' and data['question_style'] == 'short_answer'):
                 user_message+= " The types of short answer style questions present in the quiz. The first is questions that give the student a very small snippet of code in the language selected and they must respond with what it will output. The second is questions that ask for a very small snippet of code in the language that fulfils a request."
             
-            if data['total_points']:
-                user_message+= f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
-
-            if data['fixed_points_per_question']:
-                user_message+= "Each question will be worth the same amount of points."
-            else:
-                user_message+= "Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
-            user_message+= "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
-
             user_message+= "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself."
             user_message+= "\n Double check all questions including the code snippets to ensure that they are correct. "
             
@@ -240,8 +237,18 @@ def quiz_form(request):
                 user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
                 user_message += "\n\n Analyze these topics and use only that list to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create a quiz for students."
 
+            if data['total_points']:
+                user_message+= f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
+
+            if data['fixed_points_per_question']:
+                user_message+= "Each question will be worth the same amount of points. Please also make sure to label the amount of points for each questions (# points) where # is number of points assigned to that question."
+            else:
+                user_message+= "Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
+            user_message+= "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
+
             if data['programming_language']:
                 user_message+= f" Just to remind you that the questions for the quiz should be in the programming language specified as {data['programming_language']}, but also maintaining the relevance of that topic."
+            
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
             response["type"] = "quiz"
@@ -310,12 +317,6 @@ def assignment_form(request):
             if data['topic_explanation']:
                 user_message+= f"The topics for this assignment are {data['topic_explanation']}. So ensure that each topic is covered in the assignment."
 
-            if data['programming_language']:
-                user_message+= f"The assignment should be in the programming language specified as {data['programming_language']}."
-
-            if data['programming_language'] == 'other':
-                user_message += f" The specified language is {data['other_language']}."
-
             if 'uploaded_material' in request.FILES:
                 uploaded_file = data['uploaded_material']
                 entities = extract_content_from_file(uploaded_file)
@@ -323,7 +324,22 @@ def assignment_form(request):
                 file_data = limit_tokens_in_string(file_data,4500) +"\n"
                 user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
                 user_message += "\n\n Analyze these topics and use only that list to generate an assignment, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create an assignment for students."
-                
+            
+            if data['programming_language'] != 'no coding' and data['programming_language'] != 'other':
+                user_message+= f"The assignment should be in the programming language specified as {data['programming_language']}."
+
+            if data['programming_language'] == 'other':
+                user_message += f" The specified programming language should be in {data['other_language']}."
+
+            if data['total_points']:
+                user_message+= f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
+
+            if data['fixed_points_per_question']:
+                user_message+= "Each question will be worth the same amount of points. Please also make sure to label the amount of points for each questions (# points) where # is number of points assigned to that question."
+            else:
+                user_message+= "Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
+            user_message+= "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
+
             response = send_message_to_openai(user_message)
             answer_key = get_assignment_answer_key(response)
 

@@ -7,7 +7,7 @@ import { Tooltip } from 'react-tooltip';
 function QuizVariation() {
 	const navigate = useNavigate();
 	const [responseContent, setResponseContent] = useState('');
-    const [uploadedFileName, setUploadedFileName] = useState(''); // State to store the filename
+	const [uploadedFileName, setUploadedFileName] = useState(''); // State to store the filename
 
 	const [formData, setFormData] = useState({
 		num_variations: 0,
@@ -18,58 +18,56 @@ function QuizVariation() {
 		const { name, type, value, files } = e.target;
 
 		if (type === 'file') {
-            const file = files[0];
-        
-            // Allowed MIME types for PDF, PPT, and PPTX files
-            const allowedTypes = [
-                'application/pdf',
-                'application/vnd.ms-powerpoint',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-            ];
-    
-            // Check if the file type is allowed
-            if (!allowedTypes.includes(file.type)) {
-                alert('Please upload a PDF, PPT, or PPTX file.');
-                return;
-            }
-            
-            // Check if the file size is less than or equal to 5 MB
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than or equal to 5 MB.');
-                return;
-            }
+			const file = files[0];
 
-            setUploadedFileName(file.name);
-    
-            // If the file passes the checks, update the state
-            setFormData((prevState) => ({ ...prevState, [name]: file }));
-        }
+			// Allowed MIME types for PDF, PPT, and PPTX files
+			const allowedTypes = [
+				'application/pdf',
+				'application/vnd.ms-powerpoint',
+				'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+			];
 
-        else {
+			// Check if the file type is allowed
+			if (!allowedTypes.includes(file.type)) {
+				alert('Please upload a PDF, PPT, or PPTX file.');
+				return;
+			}
+
+			// Check if the file size is less than or equal to 5 MB
+			if (file.size > 5 * 1024 * 1024) {
+				alert('File size must be less than or equal to 5 MB.');
+				return;
+			}
+
+			setUploadedFileName(file.name);
+
+			// If the file passes the checks, update the state
+			setFormData((prevState) => ({ ...prevState, [name]: file }));
+		} else {
 			setFormData((prevState) => ({ ...prevState, [name]: value }));
 		}
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-        
-        const data = new FormData();
+
+		const data = new FormData();
 		for (const key in formData) {
 			data.append(key, formData[key]);
 		}
 
-        if (!formData.num_variations){
-            alert('Please enter positive value for number of variations');
-            return;
-        }
+		if (!formData.num_variations) {
+			alert('Please enter positive value for number of variations');
+			return;
+		}
 
 		// Validation check for uploading file
 		if (!formData.upload_file) {
 			alert('You must upload a file to create variations');
 			return;
 		}
-        
-        axios
+
+		axios
 			.post(`http://127.0.0.1:8000/QAgenerator/exam_refinery/`, data, {
 				headers: {
 					'Content-Type': 'multipart/form-data',
@@ -98,61 +96,52 @@ function QuizVariation() {
 
 	return (
 		<>
-			<div className='quiz-ai-container'>
-				<div className='form-container'>
-					<div className='inner-container'>
-						<h1>Create variations</h1>
-						<form onSubmit={handleSubmit}>
-							<div className='quiz-upload-container'>
-								<label
-									data-tooltip-id='label-tooltip'
-									data-tooltip-content='Specify number of variations for this content'
-									id='label-header'
-									className='block-display'
-								>
-									Number of variations:
-									<input
-                                        type='number'
-										name='num_variations'
-										min='1'
-										max='10'
-										value={formData.num_variations}
-										onChange={handleChange}
-										className='quiz-input'
-										placeholder='1-10'
-									/>
-								</label>
-								{/* Tooltip Component */}
-								<Tooltip id='label-tooltip' />
+			<div className='form-container'>
+				<div className='inner-container'>
+					<h1>Create variations</h1>
+					<form onSubmit={handleSubmit}>
+						<div className='quiz-upload-container'>
+							<div className='child'>
+							<label
+								data-tooltip-id='label-tooltip'
+								data-tooltip-content='Specify number of variations for this content'
+								id='label-header'
+								className='block-display'
+							>
+								Number of variations:
+								<input
+									type='number'
+									name='num_variations'
+									min='1'
+									max='10'
+									value={formData.num_variations}
+									onChange={handleChange}
+									className='quiz-input'
+									placeholder='1-10'
+								/>
+							</label>
+							{/* Tooltip Component */}
+							<Tooltip id='label-tooltip' />
+							</div>
+							<div className='child'>
+								<label>Upload file</label>
 								<input
 									type='file'
-									id='upload_file' // Add an ID to associate with the label
-									name='upload_file'
-                                    accept='.pdf, .ppt, .pptx' // Specify allowed file types
-									onChange={handleChange}
-									style={{ display: 'none' }} // Hide the default input
+									onChange={(e) => handleChange(e, setStudentAnswersFile)}
+									accept='application/pdf'
 								/>
-								<Tooltip id='label-tooltip-upload' />
-								<label
-									htmlFor='upload_file'
-									className='custom-upload-button'
-								>
-									<img
-										src='/svgs/upload-svgrepo-com.svg'
-										alt='Upload Icon'
-										className='upload-icon'
-									/>
-								</label>
-                                {uploadedFileName && <div className="uploaded-file-name">{uploadedFileName}</div>} {/* Display the filename */}
-								<button type='submit' id='submitButton'>
-									Submit
-								</button>
 							</div>
-						</form>
-                        <Link to='/' className='back-to-homepage'>
+							<Tooltip id='label-tooltip-upload' />
+							<div className='child'>
+							<button type='submit' id='submitButton'>
+								Submit
+							</button>
+							</div>
+						</div>
+					</form>
+					<Link to='/' className='back-to-homepage'>
 						Back to Homepage
 					</Link>
-					</div>
 				</div>
 			</div>
 		</>

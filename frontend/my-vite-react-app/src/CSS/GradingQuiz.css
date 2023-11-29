@@ -1,0 +1,49 @@
+body {
+    background-color: Azure; /* Sets the background color of the entire page */
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    background-color: white; /* Sets the container background to white */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 50px auto;
+    width: 50%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Adds a subtle shadow to the container */
+}
+
+.upload-section {
+    text-align: left;
+    width: 100%;
+}
+
+.upload-section label {
+    display: block; /* Makes the label take the full width */
+    margin-bottom: 5px;
+}
+
+.upload-grade {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.upload-grade button {
+    background-color: #007bff; /* A darker shade of blue */
+    color: white;
+    padding: 10px 20px; /* Makes the button wider and taller */
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.upload-grade button:hover {
+    background-color: #0056b3; /* Slightly darker on hover */
+}

@@ -1,0 +1,19 @@
+.grading-container {
+    width: 60%;
+    margin: auto; /* Centers the container */
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow for better appearance */
+}
+
+.student-score {
+    margin-bottom: 20px;
+}
+
+.student-answer-image {
+    text-align: center; /* Center the image */
+}
+
+.answer-image {
+    max-width: 100%; /* Make image responsive */
+    height: auto; /* Maintain aspect ratio */
+}

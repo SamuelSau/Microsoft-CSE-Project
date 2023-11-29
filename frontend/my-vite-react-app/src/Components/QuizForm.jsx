@@ -215,16 +215,15 @@ function QuizFormComponent() {
 										style={{ display: 'none' }} // Hide the default input
 									/>
 									<Tooltip id='label-tooltip-upload' />
-									<label
-										htmlFor='uploaded_material'
-										className='custom-upload-button'
-									>
-										<img
-											src='/svgs/upload-svgrepo-com.svg'
-											alt='Upload Icon'
-											className='upload-icon'
+									<div className='upload-section'>
+										<input
+											type='file'
+											onChange={(e) =>
+												handleChange(e, setStudentAnswersFile)
+											}
+											accept='application/pdf'
 										/>
-									</label>
+									</div>
 								</div>
 							</div>
 

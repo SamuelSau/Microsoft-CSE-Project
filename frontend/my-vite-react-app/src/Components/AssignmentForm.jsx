@@ -74,7 +74,6 @@ function AssignmentForm() {
 
 		// Validation check for uploading file
 		if (formData.limit_to_uploaded && !formData.uploaded_material) {
-			
 			alert(
 				"You must upload a file when 'Limit to Uploaded' is checked.\nUncheck if you do not want to upload a file"
 			);
@@ -85,32 +84,40 @@ function AssignmentForm() {
 
 		const data = new FormData();
 		for (const key in formData) {
+			// If limit_to_uploaded is true and uploaded_material is not set, skip other fields
 			if (
 				formData.limit_to_uploaded &&
-				key !== 'uploaded_material' &&
+				!formData.uploaded_material &&
 				key !== 'limit_to_uploaded' &&
 				key !== 'fixed_points_per_question'
 			) {
-				continue; // Skip other fields if limit_to_uploaded is true
+				continue;
 			}
+
+			// If the field is an array (like question_type) and it's empty, skip it
+			if (Array.isArray(formData[key]) && formData[key].length === 0) {
+				continue;
+			}
+
+			// If the field is a string and it's empty, skip it
+			if (typeof formData[key] === 'string' && formData[key].trim() === '') {
+				continue;
+			}
+
+			// Append non-empty fields to the FormData object
 			if (Array.isArray(formData[key])) {
 				formData[key].forEach((value) => data.append(key, value));
 			} else {
-			data.append(key, formData[key]);
+				data.append(key, formData[key]);
 			}
 		}
 		axios
-			.post(
-				'http://127.0.0.1:8000/QAgenerator/assignment_form/',
-				data,
-				{
-					headers: {
-						// 'X-CSRFToken': csrfToken,
-						'Content-Type': 'multipart/form-data',
-					},
-					withCredentials: true,
-				}
-			)
+			.post('http://127.0.0.1:8000/QAgenerator/assignment_form/', data, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+				withCredentials: true,
+			})
 			.then((response) => {
 				setResponseContent(response.data);
 				navigate('/response', { state: { responseData: response.data } });
@@ -142,45 +149,45 @@ function AssignmentForm() {
 							<div className='quiz-upload-container'>
 								<Tooltip id='label-tooltip' />
 								<div className='programming-languages'>
-								<label id='label-header'>
-									<span
-										data-tooltip-id='label-tooltip-language'
-										data-tooltip-content='Select 1 programming language'
-									>
-										Programming Language:
-									</span>
-								</label>
-								<Tooltip id='label-tooltip-language' />
-								<div className='language-flex-container'>
-									<select
-										name='programming_language'
-										value={formData.programming_language}
-										onChange={handleChange}
-									>
-										{[
-											['python', 'Python'],
-											['java', 'Java'],
-											['c', 'C'],
-											['other', 'Other'],
-											['no specific language', 'No specific language'],
-										].map(([value, label]) => (
-											<option key={value} value={value}>
-												{label}
-											</option>
-										))}
-									</select>
-
-									{formData.programming_language === 'other' && (
-										<input
-											type='text'
-											placeholder='Enter language'
-											name='other_programming_language'
+									<label id='label-header'>
+										<span
+											data-tooltip-id='label-tooltip-language'
+											data-tooltip-content='Select 1 programming language'
+										>
+											Programming Language:
+										</span>
+									</label>
+									<Tooltip id='label-tooltip-language' />
+									<div className='language-flex-container'>
+										<select
+											name='programming_language'
+											value={formData.programming_language}
 											onChange={handleChange}
-											className='other-language'
-										/>
-									)}
+										>
+											{[
+												['python', 'Python'],
+												['java', 'Java'],
+												['c', 'C'],
+												['other', 'Other'],
+												['no coding', 'No coding'],
+											].map(([value, label]) => (
+												<option key={value} value={value}>
+													{label}
+												</option>
+											))}
+										</select>
+
+										{formData.programming_language === 'other' && (
+											<input
+												type='text'
+												placeholder='Enter language'
+												name='other_programming_language'
+												onChange={handleChange}
+												className='other-language'
+											/>
+										)}
+									</div>
 								</div>
-							</div>
 								<div className='upload-material'>
 									<label
 										id='label-header'
@@ -197,16 +204,15 @@ function AssignmentForm() {
 										style={{ display: 'none' }} // Hide the default input
 									/>
 									<Tooltip id='label-tooltip-upload' />
-									<label
-										htmlFor='uploaded_material'
-										className='custom-upload-button'
-									>
-										<img
-											src='/svgs/upload-svgrepo-com.svg'
-											alt='Upload Icon'
-											className='upload-icon'
+									<div className='upload-section'>
+										<input
+											type='file'
+											onChange={(e) =>
+												handleChange(e, setStudentAnswersFile)
+											}
+											accept='application/pdf'
 										/>
-									</label>
+									</div>
 								</div>
 							</div>
 							<textarea
@@ -216,7 +222,6 @@ function AssignmentForm() {
 								placeholder='Briefly explain the topic you want to generate. For example, "generate questions about iterators in Python"'
 							/>
 
-							
 							<textarea
 								name='constraints'
 								value={formData.constraints}
@@ -249,14 +254,34 @@ function AssignmentForm() {
 									>
 										Fixed Points Per Question:
 									</span>
-								<input
-									type='checkbox'
-									id='fixedPointsPerQuestion'
-									name='fixed_points_per_question'
-									checked={formData.fixed_points_per_question}
-									onChange={handleChange}
-								/>
+									<input
+										type='checkbox'
+										id='fixedPointsPerQuestion'
+										name='fixed_points_per_question'
+										checked={formData.fixed_points_per_question}
+										onChange={handleChange}
+									/>
 								</label>
+							</div>
+							<div className='total-points-container'>
+								<label id='label-header' className='block-display'>
+									<span
+										data-tooltip-id='label-tooltip-totalpoints'
+										data-tooltip-content='Enter number of points that quiz/assignment should be worth'
+									>
+										Total Points:
+									</span>
+
+									<input
+										type='number'
+										name='total_points'
+										min='1'
+										value={formData.total_points}
+										onChange={handleChange}
+										className='quiz-input'
+									/>
+								</label>
+								<Tooltip id='label-tooltip-totalpoints' />
 							</div>
 
 							<button type='submit' id='submitButton'>

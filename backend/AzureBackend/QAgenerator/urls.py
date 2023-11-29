@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, exam_refinery_views
+from . import views, exam_refinery_views, grading_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('modify_quiz/', views.modify_quiz, name='modify_quiz'),
     path('modify_assignment/', views.modify_assignment, name='modify_assignment'),
     path('exam_refinery/', exam_refinery_views.exam_refine_form, name='exam_refinery'),
+    path('grade/', grading_views.upload_files_to_grade, name='grade'),
 ]

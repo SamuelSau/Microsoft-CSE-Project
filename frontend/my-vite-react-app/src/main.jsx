@@ -6,6 +6,8 @@ import Homepage from './Components/HomePage';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import ResponseAI from './Components/ResponseAI';
 import QuizVariation from './Components/QuizVariation.jsx';
+import GradingQuiz from './Components/GradingQuiz.jsx';
+import GradingResponse from './Components/GradingResponse.jsx';
 
 const router = createBrowserRouter([
 	{
@@ -27,6 +29,14 @@ const router = createBrowserRouter([
 	{
 		path: '/variation',
 		element: <QuizVariation />,
+	},
+	{
+		path: '/grading',
+		element: <GradingQuiz />,
+	},
+	{
+		path: '/grading/response',
+		element: <GradingResponse />,
 	}
 ]);
 

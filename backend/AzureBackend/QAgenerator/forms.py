@@ -49,7 +49,8 @@ class AssignmentForm(forms.Form):
     programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select, required=False)
     
     other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'}))
-    
+    total_points = forms.IntegerField(min_value=1, max_value=100, required=False)
+
     constraints = forms.CharField(max_length=10000, required=False)
     limit_to_uploaded = forms.BooleanField(required=False, label="Limit to uploaded material?")
     uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")
@@ -79,3 +80,8 @@ class NoCodeQuizForm(forms.Form):
 class QuizRefineryForm(forms.Form):
     num_variations = forms.IntegerField(min_value=1, max_value=10, required=False)
     upload_file = forms.FileField(required=False)
+
+class UploadFileForm(forms.Form):
+    quiz_file = forms.FileField(required=False)
+    answer_key_file = forms.FileField(required=False)
+    student_answers = forms.ImageField()
