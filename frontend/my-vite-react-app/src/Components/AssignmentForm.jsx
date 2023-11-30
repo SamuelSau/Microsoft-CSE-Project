@@ -45,6 +45,12 @@ function AssignmentForm() {
 			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
 		} else if (type === 'checkbox') {
 			setFormData((prevState) => ({ ...prevState, [name]: e.target.checked }));
+		} else if (name === 'programming_language' && value === 'other') {
+			// Update programming_language directly when typing in 'other' field
+			setFormData((prevState) => ({
+				...prevState,
+				programming_language: value,
+			}));
 		} else {
 			setFormData((prevState) => ({ ...prevState, [name]: value }));
 		}
@@ -111,7 +117,7 @@ function AssignmentForm() {
 				data.append(key, formData[key]);
 			}
 		}
-		console.log(formData)
+		console.log(formData);
 		axios
 			.post('http://127.0.0.1:8000/QAgenerator/assignment_form/', data, {
 				headers: {
@@ -119,7 +125,7 @@ function AssignmentForm() {
 				},
 			})
 			.then((response) => {
-				console.log(formData)
+				console.log(formData);
 				setResponseContent(response.data);
 				navigate('/response', { state: { responseData: response.data } });
 			})
@@ -182,7 +188,7 @@ function AssignmentForm() {
 											<input
 												type='text'
 												placeholder='Enter language'
-												name='other_programming_language'
+												name='other_language'
 												onChange={handleChange}
 												className='other-language'
 											/>

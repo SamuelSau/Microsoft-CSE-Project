@@ -27,10 +27,10 @@ function QuizFormComponent() {
 
 	const handleChange = (e) => {
 		const { name, type, value, files } = e.target;
-		
+
 		if (type === 'file') {
 			const file = files[0];
-			
+
 			// Allowed MIME types for PDF, PPT, and PPTX files
 			const allowedTypes = [
 				'application/pdf',
@@ -50,11 +50,18 @@ function QuizFormComponent() {
 				return;
 			}
 
-
 			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
 		} else if (type === 'checkbox') {
 			setFormData((prevState) => ({ ...prevState, [name]: e.target.checked }));
-		} else {
+		} 
+		else if (name === 'programming_language' && value === 'other') {
+			// Update programming_language directly when typing in 'other' field
+			setFormData((prevState) => ({
+				...prevState,
+				programming_language: value,
+			}));
+		}
+		else {
 			setFormData((prevState) => ({ ...prevState, [name]: value }));
 		}
 	};
@@ -91,8 +98,6 @@ function QuizFormComponent() {
 			setErrorMessage(null); // Reset any previous error messages
 		}
 
-
-
 		// Validatation for number_of_questions
 		const numberOfQuestions = parseInt(formData.num_questions);
 		if (
@@ -108,17 +113,16 @@ function QuizFormComponent() {
 
 		const data = new FormData();
 		for (const key in formData) {
-		
 			// If the field is an array (like question_type) and it's empty, skip it
 			if (Array.isArray(formData[key]) && formData[key].length === 0) {
 				continue;
 			}
-		
+
 			// If the field is a string and it's empty, skip it
 			if (typeof formData[key] === 'string' && formData[key].trim() === '') {
 				continue;
 			}
-		
+
 			// Append non-empty fields to the FormData object
 			if (Array.isArray(formData[key])) {
 				formData[key].forEach((value) => data.append(key, value));
@@ -126,7 +130,7 @@ function QuizFormComponent() {
 				data.append(key, formData[key]);
 			}
 		}
-		console.log(formData)
+		console.log(formData);
 
 		let endpoint = '/quiz_form/'; // default endpoint
 
@@ -144,7 +148,7 @@ function QuizFormComponent() {
 				},
 			})
 			.then((response) => {
-				console.log(formData)
+				console.log(formData);
 				setResponseContent(response.data);
 				navigate('/response', { state: { responseData: response.data } });
 			})
@@ -173,9 +177,9 @@ function QuizFormComponent() {
 						{/*if it is not coding, then set header to No Coding Quiz */}
 						{formData.programming_language === 'no coding' ? (
 							<h1>No Coding Quiz Form</h1>
-						) : 
+						) : (
 							<h1>Coding Quiz Form</h1>
-}
+						)}
 						<form onSubmit={handleSubmit}>
 							<div className='quiz-upload-container'>
 								<label
@@ -213,7 +217,6 @@ function QuizFormComponent() {
 										accept='application/pdf'
 									/>
 									<Tooltip id='label-tooltip-upload' />
-
 								</div>
 							</div>
 
@@ -250,7 +253,7 @@ function QuizFormComponent() {
 										<input
 											type='text'
 											placeholder='Enter language'
-											name='other_programming_language'
+											name='other_language'
 											//value={formData.programming_language}
 											onChange={handleChange}
 											className='other-language'

@@ -118,7 +118,7 @@ def no_code_quiz_form(request):
             if data['difficulty_level']:
                 user_message += f"Write a non-coding quiz with a difficulty level of {data['difficulty_level']}"
 
-            if data['num_questions']:
+            if len(data['num_questions']) != 0:
                 user_message += f"The quiz should have exactly {data['num_questions']} questions, do not go over this number."
 
             if len(data['question_style']) == 2:
@@ -249,7 +249,7 @@ def quiz_form(request):
                 user_message += " The questions should be complex and require a lot of thought. An example of an advanced question would be: " + hard_q
 
             if data['programming_language'] == 'other':
-                user_message += f" The specified language is {data['other_language']}."
+                user_message += f" The specified language is {data['programming_language']}."
 
             user_message += "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself."
             user_message += "\n Double check all questions including the code snippets to ensure that they are correct. "
@@ -282,8 +282,12 @@ def quiz_form(request):
                 user_message += "Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
             user_message += "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
 
-            if data['programming_language']:
-                user_message += f" Just to remind you that the questions for the quiz should be in the programming language specified as {data['programming_language']}, but also maintaining the relevance of that topic."
+            if data['programming_language'] == 'no coding':
+                user_message += f" The assignment should not be a coding assignment, therefore no programming languages should be involved."
+            if data['programming_language'] == 'other' and len(data['other_language']) != 0:
+                user_message += f" The specified language is {data['other_language']}. The question should require the student to write at least 50 lines of code per question, sometimes requiring more."
+            if data['programming_language'] != 'no coding' and data['programming_language'] != 'other':
+                user_message += f"The assignment should be in the programming language specified as {data['programming_language']}."
 
             if data['num_questions']:
                 user_message += f" The quiz should have exactly {data['num_questions']} questions, do not go over this number."
@@ -373,10 +377,11 @@ def assignment_form(request):
                 user_message += "\n\n Analyze these topics and use only that list to generate an assignment, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create an assignment for students."
             if data['programming_language'] == 'no coding':
                 user_message += f" The assignment should not be a coding assignment, therefore no programming languages should be involved."
-            if data['programming_language'] == 'other':
+            if data['programming_language'] == 'other' and len(data['other_language']) != 0:
                 user_message += f" The specified language is {data['other_language']}. The question should require the student to write at least 50 lines of code per question, sometimes requiring more."
-            if data['programming_language']:
+            if data['programming_language'] != 'no coding' and data['programming_language'] != 'other':
                 user_message += f"The assignment should be in the programming language specified as {data['programming_language']}."
+
             if data['total_points']:
                 user_message += f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
 
@@ -387,7 +392,7 @@ def assignment_form(request):
 
             user_message += "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
 
-            if data['constraints']:
+            if len(data['constraints']) != 0:
                 user_message += f" The constraints for this assignment are {data['constraints']}."
 
             user_message += "\nThe assignment should clearly describe what the student must do, along with context of the problem. If a coding assignment, give a sceenario that makes the assignment fun, give test cases and explected output and formatting. It must be high detail and explain explicitly what the student must deliver."

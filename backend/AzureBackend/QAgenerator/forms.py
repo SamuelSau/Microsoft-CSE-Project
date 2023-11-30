@@ -28,7 +28,7 @@ class QuizForm(forms.Form):
     
     # Select dropdowns
     programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select, required=False)
-    #other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'})) #fill out if different language than what's shown
+    other_language = forms.CharField(max_length=1000, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'})) #fill out if different language than what's shown
 
     difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.Select, required=False)
     num_questions = forms.IntegerField(min_value=1, max_value=50, required=False)
