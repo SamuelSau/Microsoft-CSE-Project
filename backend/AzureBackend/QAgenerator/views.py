@@ -185,6 +185,7 @@ def quiz_form(request):
 
             if data['programming_language']:
                 user_message += f"The quiz should be in the programming language specified as {data['programming_language']}."
+                user_message+= "\nThese questions are for college students, they should be more focused on code writing and comprehension. Do not bring up theory such as 'what is the purpose of ___' or 'what is the difference between ___ and ___'. We want hands on questions that test the student's ability to code and understand code."
 
             if len(data['question_style']) == 2:
                 user_message += " The quiz should have both short answer and multiple choice questions."
@@ -202,22 +203,22 @@ def quiz_form(request):
                 user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
 
             if 'bug_fix' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to fix a bug in a code snippet.\n"
 
             if 'bug_identification' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to identify one or more bugs in a code snippet.\n"
 
             if 'code_analysis' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to analyze a code snippet.\n"
 
             if 'code_completion' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to complete a code snippet.\n"
 
             if 'code_output' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to write the output of a code snippet.\n"
 
             if 'code_writing' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be required to write code.\n"
 
             if data['difficulty_level'] == 'elementary':
                 easy_q = """def greet(name):
@@ -293,6 +294,7 @@ def quiz_form(request):
                 user_message += f" The quiz should have exactly {data['num_questions']} questions, do not go over this number."
 
             print(user_message)
+            
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
             response["type"] = "quiz"
