@@ -4,12 +4,12 @@ from io import BytesIO
 import pdfplumber
 import requests
 from decouple import config
-from skimage.transform import rotate
-import os
+# from skimage.transform import rotate
+# import os
 from django.views.decorators.csrf import csrf_exempt
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from msrest.authentication import CognitiveServicesCredentials
-from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
+# from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from msrest.authentication import CognitiveServicesCredentials
@@ -26,10 +26,10 @@ import numpy as np
 import cv2
 # from cv2 import cv2
 import base64
-import pytesseract
+# import pytesseract
 import numpy as np
 from io import BytesIO
-from PIL import Image
+# from PIL import Image
 # pylint: disable=no-member
 
 
