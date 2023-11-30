@@ -1,7 +1,7 @@
 from django import forms
 
 class QuizForm(forms.Form):
-    LANGUAGE_CHOICES = (("python", "Python"), ("java", "Java"), ("c", "C"), ("c++", "C++"), ("other", "Other"), ("no specific language, No specific language"))
+    LANGUAGE_CHOICES = (("python", "Python"), ("java", "Java"), ("c", "C"), ("c++", "C++"), ("other", "Other"), ('no coding', 'No coding'))
 
     DIFFICULTY_CHOICES =(
         ("elementary", "Elementary"),
@@ -43,7 +43,7 @@ class QuizForm(forms.Form):
     uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")
 
 class AssignmentForm(forms.Form):
-    LANGUAGE_CHOICES = (("python", "Python"), ("java", "Java"), ("c", "C"), ("c++", "C++"), ("other", "Other"), ("no specific language, No specific language"))
+    LANGUAGE_CHOICES = (("python", "Python"), ("java", "Java"), ("c", "C"), ("c++", "C++"), ("other", "Other"), ('no coding', 'No coding'))
 
     topic_explanation = forms.CharField(max_length=100, required=False)
     programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select, required=False)
@@ -78,6 +78,8 @@ class NoCodeQuizForm(forms.Form):
     question_style = forms.MultipleChoiceField(choices=Q_STYLE_CHOICES, widget=forms.SelectMultiple, required=False)
     limit_to_uploaded = forms.BooleanField(required=False, label="Limit to uploaded material?")
     uploaded_material = forms.FileField(required=False, help_text="Upload lecture slides or notes.")
+    fixed_points_per_question = forms.BooleanField(required=False)
+    total_points = forms.IntegerField(min_value=1, max_value=100, required=False)
 
 class QuizRefineryForm(forms.Form):
     num_variations = forms.IntegerField(min_value=1, max_value=10, required=False)

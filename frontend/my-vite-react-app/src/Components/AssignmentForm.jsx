@@ -24,7 +24,6 @@ function AssignmentForm() {
 
 		if (type === 'file') {
 			const file = files[0];
-
 			// Allowed MIME types for PDF, PPT, and PPTX files
 			const allowedTypes = [
 				'application/pdf',
@@ -34,7 +33,7 @@ function AssignmentForm() {
 
 			// Check if the file type is allowed
 			if (!allowedTypes.includes(file.type)) {
-				alert('Please upload a PDF, PPT, or PPTX file.');
+				alert('Please upload a PDF');
 				return;
 			}
 
@@ -86,14 +85,14 @@ function AssignmentForm() {
 		const data = new FormData();
 		for (const key in formData) {
 			// If limit_to_uploaded is true and uploaded_material is not set, skip other fields
-			if (
-				formData.limit_to_uploaded &&
-				!formData.uploaded_material &&
-				key !== 'limit_to_uploaded' &&
-				key !== 'fixed_points_per_question'
-			) {
-				continue;
-			}
+			// if (
+			// 	formData.limit_to_uploaded &&
+			// 	!formData.uploaded_material &&
+			// 	key !== 'limit_to_uploaded' &&
+			// 	key !== 'fixed_points_per_question'
+			// ) {
+			// 	continue;
+			// }
 
 			// If the field is an array (like question_type) and it's empty, skip it
 			if (Array.isArray(formData[key]) && formData[key].length === 0) {
@@ -112,6 +111,7 @@ function AssignmentForm() {
 				data.append(key, formData[key]);
 			}
 		}
+		console.log(formData)
 		axios
 			.post('http://127.0.0.1:8000/QAgenerator/assignment_form/', data, {
 				headers: {
@@ -119,6 +119,7 @@ function AssignmentForm() {
 				},
 			})
 			.then((response) => {
+				console.log(formData)
 				setResponseContent(response.data);
 				navigate('/response', { state: { responseData: response.data } });
 			})
@@ -198,21 +199,11 @@ function AssignmentForm() {
 									</label>
 									<input
 										type='file'
-										id='uploaded_material' // Add an ID to associate with the label
 										name='uploaded_material'
 										onChange={handleChange}
-										style={{ display: 'none' }} // Hide the default input
+										accept='application/pdf'
 									/>
 									<Tooltip id='label-tooltip-upload' />
-									<div className='upload-section'>
-										<input
-											type='file'
-											onChange={(e) =>
-												handleChange(e, setStudentAnswersFile)
-											}
-											accept='application/pdf'
-										/>
-									</div>
 								</div>
 							</div>
 							<textarea

@@ -127,7 +127,8 @@ function QuizVariation() {
 								<label>Upload file</label>
 								<input
 									type='file'
-									onChange={(e) => handleChange(e, setStudentAnswersFile)}
+									name='upload_file'
+									onChange={handleChange}
 									accept='application/pdf'
 								/>
 							</div>

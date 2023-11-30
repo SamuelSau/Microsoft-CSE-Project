@@ -346,12 +346,10 @@ def assignment_form(request):
                 file_data = limit_tokens_in_string(file_data, 4500) + "\n"
                 user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
                 user_message += "\n\n Analyze these topics and use only that list to generate an assignment, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create an assignment for students."
-
             if data['programming_language'] == 'no coding':
                 user_message += f" The assignment should not be a coding assignment, therefore no programming languages should be involved."
             if data['programming_language'] == 'other':
                 user_message += f" The specified language is {data['other_language']}."
-
             if data['programming_language']:
                 user_message += f"The assignment should be in the programming language specified as {data['programming_language']}."
             if data['total_points']:
@@ -359,11 +357,14 @@ def assignment_form(request):
 
             if data['fixed_points_per_question']:
                 user_message += "Each question will be worth the same amount of points. Please also make sure to label the amount of points for each questions (# points) where # is number of points assigned to that question."
-            else:
+            if not data['fixed_points_per_question']:
                 user_message += "Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
 
             user_message += "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
 
+            if data['constraints']:
+                user_message += f" The constraints for this assignment are {data['constraints']}."
+            print('there')
             response = send_message_to_openai(user_message)
             answer_key = get_assignment_answer_key(response)
 

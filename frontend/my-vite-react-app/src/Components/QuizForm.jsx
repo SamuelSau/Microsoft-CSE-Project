@@ -27,10 +27,10 @@ function QuizFormComponent() {
 
 	const handleChange = (e) => {
 		const { name, type, value, files } = e.target;
-
+		
 		if (type === 'file') {
 			const file = files[0];
-
+			
 			// Allowed MIME types for PDF, PPT, and PPTX files
 			const allowedTypes = [
 				'application/pdf',
@@ -40,7 +40,7 @@ function QuizFormComponent() {
 
 			// Check if the file type is allowed
 			if (!allowedTypes.includes(file.type)) {
-				alert('Please upload a PDF, PPT, or PPTX file.');
+				alert('Please upload a PDF');
 				return;
 			}
 
@@ -49,6 +49,7 @@ function QuizFormComponent() {
 				alert('File size must be less than or equal to 5 MB.');
 				return;
 			}
+
 
 			setFormData((prevState) => ({ ...prevState, [name]: files[0] }));
 		} else if (type === 'checkbox') {
@@ -90,6 +91,8 @@ function QuizFormComponent() {
 			setErrorMessage(null); // Reset any previous error messages
 		}
 
+
+
 		// Validatation for number_of_questions
 		const numberOfQuestions = parseInt(formData.num_questions);
 		if (
@@ -105,10 +108,6 @@ function QuizFormComponent() {
 
 		const data = new FormData();
 		for (const key in formData) {
-			// If limit_to_uploaded is true and uploaded_material is not set, skip other fields
-			if (formData.limit_to_uploaded && !formData.uploaded_material && key !== 'limit_to_uploaded' && key !== 'fixed_points_per_question') {
-				continue;
-			}
 		
 			// If the field is an array (like question_type) and it's empty, skip it
 			if (Array.isArray(formData[key]) && formData[key].length === 0) {
@@ -127,7 +126,7 @@ function QuizFormComponent() {
 				data.append(key, formData[key]);
 			}
 		}
-		
+		console.log(formData)
 
 		let endpoint = '/quiz_form/'; // default endpoint
 
@@ -209,21 +208,12 @@ function QuizFormComponent() {
 									</label>
 									<input
 										type='file'
-										id='uploaded_material' // Add an ID to associate with the label
 										name='uploaded_material'
 										onChange={handleChange}
-										style={{ display: 'none' }} // Hide the default input
+										accept='application/pdf'
 									/>
 									<Tooltip id='label-tooltip-upload' />
-									<div className='upload-section'>
-										<input
-											type='file'
-											onChange={(e) =>
-												handleChange(e, setStudentAnswersFile)
-											}
-											accept='application/pdf'
-										/>
-									</div>
+
 								</div>
 							</div>
 
