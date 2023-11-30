@@ -196,29 +196,20 @@ def quiz_form(request):
             if data['topic_explanation']:
                 user_message += f" The topics for this quiz are {data['topic_explanation']}. So ensure that each topic is covered in the quiz."
 
-            if 'syntax' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+            question_type_messages = {
+                'syntax': "This means the student will be expected to write the correct syntax for a question.\n",
+                'logic': "This means the student will be expected to analyze how a snippet of code works.\n",
+                'bug_fix': " This means the student will be expected to fix a bug in a code snippet.\n",
+                'bug_identification': " This means the student will be expected to identify one or more bugs in a code snippet.\n",
+                'code_analysis': " This means the student will be expected to analyze a code snippet.\n",
+                'code_completion': " This means the student will be expected to complete a code snippet.\n",
+                'code_output': " This means the student will be expected to write the output of a code snippet.\n",
+                'code_writing': " This means the student will be required to write code.\n"
+            }
 
-            if 'logic' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
-
-            if 'bug_fix' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to fix a bug in a code snippet.\n"
-
-            if 'bug_identification' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to identify one or more bugs in a code snippet.\n"
-
-            if 'code_analysis' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to analyze a code snippet.\n"
-
-            if 'code_completion' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to complete a code snippet.\n"
-
-            if 'code_output' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be expected to write the output of a code snippet.\n"
-
-            if 'code_writing' in data['question_type']:
-                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}. This means the student will be required to write code.\n"
+            for question_type, message in question_type_messages.items():
+                if question_type in data['question_type']:
+                    user_message += f" The type of questions that can be on this quiz are: {data['question_type']}.{message}"
 
             if data['difficulty_level'] == 'elementary':
                 easy_q = """def greet(name):
@@ -247,7 +238,7 @@ def quiz_form(request):
 
                             What is the value of f(3)?
                         """
-                user_message += " The questions should be complex and require a lot of thought. An example of an advanced question would be: " + hard_q
+                user_message += " The questions should be very complex and require a lot of thought. An example of an advanced question would be: " + hard_q
 
             if data['programming_language'] == 'other':
                 user_message += f" The specified language is {data['programming_language']}."
@@ -288,11 +279,13 @@ def quiz_form(request):
             if data['programming_language'] == 'other' and len(data['other_language']) != 0:
                 user_message += f" The specified language is {data['other_language']}. The question should require the student to write at least 50 lines of code per question, sometimes requiring more."
             if data['programming_language'] != 'no coding' and data['programming_language'] != 'other':
-                user_message += f"The assignment should be in the programming language specified as {data['programming_language']}."
+                user_message += f"The assignment should be in the programming language specified as {data['programming_language']}. Remeber the coding questions must involve multiple lines of code, no theory questions."
 
             if data['num_questions']:
                 user_message += f" The quiz should have exactly {data['num_questions']} questions, do not go over this number."
-
+            
+            user_message+= "\n\nIf this is a coding quiz, do not have any conceptual questions that do not involve code. Focus on code and syntax only."
+            user_message+= "\nRemember this is for college students and their exams, please ensure that the questions are challenging and require a deep understanding of the topics."
             print(user_message)
             
             response = send_message_to_openai(user_message)
