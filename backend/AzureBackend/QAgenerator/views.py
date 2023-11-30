@@ -193,9 +193,6 @@ def quiz_form(request):
             if data['programming_language']:
                 user_message += f"The quiz should be in the programming language specified as {data['programming_language']}."
 
-            if data['num_questions']:
-                user_message += f" The quiz should have exactly {data['num_questions']} questions, do not go over this number."
-
             if data['question_style']:
                 user_message += f" The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of syntax and logic."
 
@@ -264,6 +261,10 @@ def quiz_form(request):
 
             if data['programming_language']:
                 user_message += f" Just to remind you that the questions for the quiz should be in the programming language specified as {data['programming_language']}, but also maintaining the relevance of that topic."
+
+            if data['num_questions']:
+                user_message += f" The quiz should have exactly {data['num_questions']} questions, do not go over this number."
+
 
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
