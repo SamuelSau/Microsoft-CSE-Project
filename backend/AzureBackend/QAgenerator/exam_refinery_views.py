@@ -150,9 +150,9 @@ def extract_content_from_file(uploaded_file, file_extension) -> str:
                 if hasattr(shape, "text"):
                     content += shape.text + "\n"
                 
-    entities = extract_entities_from_azure(content)    
-    entities_str = '\n'.join([' '.join(phrase_list) for phrase_list in entities])
-    limited_str = limit_tokens_in_string(entities_str, 4500)
+    # entities = extract_entities_from_azure(content)    
+    # entities_str = '\n'.join([' '.join(phrase_list) for phrase_list in entities])
+    # limited_str = limit_tokens_in_string(entities_str, 4500)
     return content
 
 def extract_entities_from_azure(text: str) -> List[List]:

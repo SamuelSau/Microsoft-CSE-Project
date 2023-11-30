@@ -250,7 +250,8 @@ def quiz_form(request):
                 file_data = limit_tokens_in_string(file_data, 4500) + "\n"
                 print(file_data)
                 user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
-                user_message += "\n\n Analyze these topics and use only that list to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create a quiz for students."
+                user_message += "\n\n Analyze these topics and use the topics within that list that are related to the initial topics listed by the professor:",data['topic_explanation'],"to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor or the topics given initially. "
+                user_message += "Ensure that the student would only be able to do this quiz if they read and understood the topics from the list provided by the professor."
 
             if data['total_points']:
                 user_message += f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
