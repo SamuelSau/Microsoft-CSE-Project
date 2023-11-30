@@ -22,6 +22,34 @@ function ResponseAI(props) {
 	});
 	const [modifiedFormData, setModifiedFormData] = useState({});
 
+	const processAnswerKeys = (answerKeyString) => {
+		// Define a regex pattern for the start of a new answer key section
+		const answerKeyStartRegex = /Variation \d+:|Answer Key:/g;
+		let match;
+		let answerKeyStartIndices = [];
+	
+		// Find all matches and their indices
+		while ((match = answerKeyStartRegex.exec(answerKeyString)) !== null) {
+			answerKeyStartIndices.push(match.index);
+		}
+	
+		// Split the string into sections based on the indices
+		let answerKeys = {};
+		for (let i = 0; i < answerKeyStartIndices.length; i++) {
+			let start = answerKeyStartIndices[i];
+			let end = answerKeyStartIndices[i + 1] || answerKeyString.length;
+			let section = answerKeyString.substring(start, end);
+	
+			// Extracting the variation number
+			let variationMatch = section.match(/Variation (\d+):/);
+			let variationNumber = variationMatch ? variationMatch[1] : 'General';
+	
+			answerKeys[`Variation ${variationNumber}`] = section;
+		}
+	
+		return answerKeys;
+	};
+
 	const handleChange = (e) => {
 		const { name, type, value, files } = e.target;
 
@@ -101,7 +129,9 @@ function ResponseAI(props) {
 				);
 				startIndex = endIndex !== -1 ? endIndex : quizVariations.length;
 
-				const answerKey = answerKeys[`Variation ${variationNumber}`];
+				//const answerKey = answerKeyContent[`Variation ${variationNumber}`];
+				const processedAnswerKeys = processAnswerKeys(messageContent);
+				const answerKey = processedAnswerKeys[`Variation ${variationNumber}`];
 				createPdfForVariation(variationContent, variationNumber, answerKey);
 				variationNumber++;
 			});
@@ -197,6 +227,7 @@ function ResponseAI(props) {
 			setResponseType('quiz');
 			if (answerKeyContent) {
 				setMessageContent(answerKeyContent);
+
 			}
 			if (originalQuizContent) {
 				setOriginalQuiz(originalQuizContent);

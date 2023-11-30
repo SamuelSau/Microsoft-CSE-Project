@@ -88,6 +88,9 @@ def create_quiz_variations(file_content: str, num_variations: int):
     response = requests.post(url, headers=headers, json=data)
     response_json = response.json()  # Get the JSON content of the response
     answer_key = get_variant_answer_key(response_json)
+
+    response_json['type'] = 'variations'
+
     combined_data = {
         "response": response_json,
         "answer_key": answer_key
@@ -150,10 +153,10 @@ def extract_content_from_file(uploaded_file, file_extension) -> str:
                 if hasattr(shape, "text"):
                     content += shape.text + "\n"
                 
-    # entities = extract_entities_from_azure(content)    
-    # entities_str = '\n'.join([' '.join(phrase_list) for phrase_list in entities])
-    # limited_str = limit_tokens_in_string(entities_str, 4500)
-    return content
+    entities = extract_entities_from_azure(content)    
+    entities_str = '\n'.join([' '.join(phrase_list) for phrase_list in entities])
+    limited_str = limit_tokens_in_string(entities_str, 4500)
+    return limited_str
 
 def extract_entities_from_azure(text: str) -> List[List]:
         
