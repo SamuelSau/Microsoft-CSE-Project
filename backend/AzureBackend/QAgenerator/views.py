@@ -184,7 +184,7 @@ def quiz_form(request):
             user_message = f"You must write a quiz. Be sure to name the quiz based on the topic such as 'Quiz: Topic'."
 
             if data['programming_language']:
-                user_message += f"The quiz should be in the programming language specified as {data['programming_language']}."
+                user_message += f"This quiz will be a coding quiz that focuses on the practical coding skills learned in the class, with no emphasis on theory or definitions, only on code. This is very important. The quiz should be in the programming language specified as {data['programming_language']}."
                 user_message+= "\nThese questions are for college students, they should be more focused on code writing and comprehension. Do not bring up theory such as 'what is the purpose of ___' or 'what is the difference between ___ and ___'. We want hands on questions that test the student's ability to code and understand code."
 
             if len(data['question_style']) == 2:
@@ -230,14 +230,22 @@ def quiz_form(request):
                         """
                 user_message += " The questions should be a bit complex and require a bit more thought than first glance. An example of an intermediate question would be: " + medium_q
             elif data['difficulty_level'] == 'advanced':
-                hard_q = """def f(x):
-                                if x == 0:
-                                    return 0
-                                else:
-                                    return x + f(x-1)
+                hard_q = """
+                What is the output of the following code?
+                def mystery_function(data, k):
+                    if k == len(data):
+                        return [[]]
+                    res = []
+                    for item in mystery_function(data, k + 1):
+                        res.append(item)
+                        res.append([data[k]] + item)
+                    return res
 
-                            What is the value of f(3)?
-                        """
+                data_list = [1, 2, 3]
+                result = mystery_function(data_list, 0)
+                result.sort()
+                print(result)
+                """
                 user_message += " The questions should be very complex and require a lot of thought. An example of an advanced question would be: " + hard_q
 
             if data['programming_language'] == 'other':
@@ -250,12 +258,12 @@ def quiz_form(request):
                 uploaded_file = data['uploaded_material']
                 entities = extract_content_from_file(uploaded_file)
                 file_data = "".join(map(str, entities))
-                file_data = limit_tokens_in_string(file_data, 4500) + "\n"
                 print(file_data)
+                if len(file_data) > 4500:
+                    file_data = limit_tokens_in_string(file_data, 4500) + "\n"
                 user_message += "Attached is a list of topics submitted by a professor:\n" + file_data
                 
-                print(data['topic_explanation'])
-                print(type(data['topic_explanation']))
+               
                 if len(data['topic_explanation']) != 0:
                     user_message += f"\n\n Analyze these topics and use the topics within that list that are related to the initial topics listed by the professor: {data['topic_explanation']} to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor or the topics given initially."
 
@@ -277,7 +285,7 @@ def quiz_form(request):
             if data['programming_language'] == 'no coding':
                 user_message += f" The assignment should not be a coding assignment, therefore no programming languages should be involved."
             if data['programming_language'] == 'other' and len(data['other_language']) != 0:
-                user_message += f" The specified language is {data['other_language']}. The question should require the student to write at least 50 lines of code per question, sometimes requiring more."
+                user_message += f" The specified language is {data['other_language']}. The question should require the student to write at least 50 lines of code per question, sometimes requiring more. These questions should also not be vague, such as 'What does the super() function do in Python?', do questions that involve the student to read and understand code and syntax. Do not ask questions that involve theory, such as 'What is the purpose of ___' or 'What is the difference between ___ and ___'. We want hands on questions that test the student's ability to code and understand code. "
             if data['programming_language'] != 'no coding' and data['programming_language'] != 'other':
                 user_message += f"The assignment should be in the programming language specified as {data['programming_language']}. Remeber the coding questions must involve multiple lines of code, no theory questions."
 
