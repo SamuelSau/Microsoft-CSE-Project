@@ -219,7 +219,7 @@ function ResponseAI(props) {
 			}
 			setResponseType('variations');
 		}
-	}, [props]);
+	}, [location.state?.responseData]);
 
 	return (
 		<>

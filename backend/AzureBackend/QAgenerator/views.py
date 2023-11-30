@@ -113,25 +113,22 @@ def no_code_quiz_form(request):
 
             user_message += ".\n"
 
-            user_message = f"You must write a quiz. Be sure to name the quiz based on the topic such as 'Quiz: Topic'."
+            user_message += f"You must write a NON CODING quiz. Be sure to name the quiz based on the topic such as 'Quiz: Topic'."
 
             if data['difficulty_level']:
-                user_message += "Write a non-coding quiz with a difficulty level of " + \
-                    data['difficulty_level'] + "."
+                user_message += f"Write a non-coding quiz with a difficulty level of {data['difficulty_level']}"
 
             if data['num_questions']:
-                user_message += " The quiz should have exactly " + \
-                    str(data['num_questions']) + \
-                    " questions, do not go over this number."
+                user_message += f"The quiz should have exactly {data['num_questions']} questions, do not go over this number."
 
-            if data['question_style']:
-                user_message += " The quiz should be in a " + \
-                    data['question_style'] + " format that ensures that the student is tested on their understanding of the topic and complexities behind the question."
-
+            if len(data['question_style']) == 2:
+                user_message += " The quiz should have both short answer and multiple choice questions."
+            elif len(data['question_style']) == 1:
+                if 'short_answer' in data['question_style'] or 'multiple_choice' in data['question_style'] :
+                    user_message += f"The style questions present in the quiz should be {data['question_style']} that challenge the student to elaborate on their answer so that it is clear they understand the answer. These can include fill in the blank, short response, etc."
+            
             if data['topic_explanation']:
-                user_message += " The topics for this quiz are " + \
-                    data['topic_explanation'] + \
-                    ", so ensure that each topic is covered in the quiz."
+                user_message += f"The topics for this quiz are {data['topic_explanation']} so ensure that each topic is covered in the quiz."
 
             if data['difficulty_level'] == 'elementary':
                 user_message += " The questions should be simple and straightforward."
@@ -140,8 +137,6 @@ def no_code_quiz_form(request):
             elif data['difficulty_level'] == 'advanced':
                 user_message += " The questions should be complex and require a lot of thought."
 
-            if data['question_style'] == 'short_answer' or data['question_style'] == 'multiple_choice':
-                user_message += " The types of short answer style questions present in the quiz are ones that challenge the student to elaborate on their answer so that it is clear they understand the answer. These can include fill in the blank, short response, etc."
 
             user_message += "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz. Do not include the answer key."
             user_message += "\n Double check all questions to ensure that they are correct."
@@ -151,21 +146,20 @@ def no_code_quiz_form(request):
                 entities = extract_content_from_file(uploaded_file)
                 file_data = "".join(map(str, entities))
                 file_data = limit_tokens_in_string(file_data, 4500) + "\n"
-                user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
+                user_message += "Attached is a list of topics submitted by a professor:\n" + file_data
                 print(file_data)
-                user_message += "\n\n Analyze these topics and use only that list to generate a quiz that has NO CODING involved. Do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create a non-coding quiz for students."
+                user_message += "\n Analyze these topics and use only that list to generate a quiz that has NO CODING involved. Do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create a non-coding quiz for students."
 
             if data['fixed_points_per_question']:
                 user_message += "Each question will be worth the same amount of points. Please also make sure to label the amount of points for each questions (# points) where # is number of points assigned to that question."
 
             if data['total_points']:
-                user_message += "The total points for this quiz is " + \
-                    str(data['total_points']) + \
-                    ". Please show the total points at the top of the quiz."
-
+                user_message += f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
+            
+            print(user_message)
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
-
+            response["type"] = "quiz"
             return JsonResponse({
                 "response": response,
                 "answer_key": answer_key,
@@ -246,8 +240,13 @@ def quiz_form(request):
                 file_data = "".join(map(str, entities))
                 file_data = limit_tokens_in_string(file_data, 4500) + "\n"
                 print(file_data)
-                user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
-                user_message += "\n\n Analyze these topics and use the topics within that list that are related to the initial topics listed by the professor:",data['topic_explanation'],"to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor or the topics given initially. "
+                user_message += "Attached is a list of topics submitted by a professor:\n" + file_data
+                if data['topic_explanation']:
+                    user_message += "\n\n Analyze these topics and use the topics within that list that are related to the initial topics listed by the professor:",data['topic_explanation'],"to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor or the topics given initially. "
+                
+                else:
+                    user_message += "\n\n Analyze these topics and use the topics within that list that are related to the initial topics listed by the professor to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor or the topics given initially. "
+
                 user_message += "Ensure that the student would only be able to do this quiz if they read and understood the topics from the list provided by the professor."
 
             if data['total_points']:
@@ -346,7 +345,7 @@ def assignment_form(request):
                 entities = extract_content_from_file(uploaded_file)
                 file_data = "".join(map(str, entities))
                 file_data = limit_tokens_in_string(file_data, 4500) + "\n"
-                user_message = "Attached is a list of topics submitted by a professor:\n" + file_data
+                user_message += "Attached is a list of topics submitted by a professor:\n" + file_data
                 user_message += "\n\n Analyze these topics and use only that list to generate an assignment, do not deviate by creating random questions that do not relate to the list provided by the professor. Strictly you will be using this list to create an assignment for students."
             if data['programming_language'] == 'no coding':
                 user_message += f" The assignment should not be a coding assignment, therefore no programming languages should be involved."
@@ -364,10 +363,8 @@ def assignment_form(request):
 
             user_message += "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
 
-
             if data['constraints']:
                 user_message += f" The constraints for this assignment are {data['constraints']}."
-            print('there')
 
             user_message += "\nThe assignment should clearly describe what the student must do, along with context of the problem. If a coding assignment, give a sceenario that makes the assignment fun, give test cases and explected output and formatting. It must be high detail and explain explicitly what the student must deliver."
             response = send_message_to_openai(user_message)

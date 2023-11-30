@@ -67,7 +67,6 @@ class NoCodeQuizForm(forms.Form):
     Q_STYLE_CHOICES = (
         ("multiple_choice", "Multiple Choice"),
         ("short_answer", "Short Answer"),
-        ("short_answer_and_multiple_choice", "Multiple Choice and Short Answer"),
     )
 
     topic_explanation = forms.CharField(max_length=10000, required=False)
