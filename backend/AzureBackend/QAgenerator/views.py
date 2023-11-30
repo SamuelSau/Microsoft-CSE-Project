@@ -93,7 +93,7 @@ def get_assignment_answer_key(response):
     data = {
         "messages": [
             {"role": "system", "content": "You are a highly skilled TA that grades assignments for educators."},
-            {"role": "user", "content": "Given the following assignment, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the assignment. Provide only one sentance explaining what would qualify the student for earning full points in the question.\nThe assignment is as follows:\n" + assignment},
+            {"role": "user", "content": "Given the following assignment, provide a correct answer the question(s) asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the assignment. Provide only one sentance explaining what would qualify the student for earning full points in the question. If it is a coding assignment, provide sample code that would result in full points.\nThe assignment is as follows:\n" + assignment},
             {"role": "assistant", "content": "Here is the answer key for the assignment corresponding respectively to each question. The formatting for the response will be: Original Assignment: 1. 2. where each number is the answer to the question. Do not include the questions with the answers, just have the answers. The top of the response should be formatted as 'Assignment: Topic'.'"}
         ]
     }
@@ -332,7 +332,7 @@ def assignment_form(request):
         if form.is_valid():
             data = form.cleaned_data
 
-            user_message = ""
+            user_message = "You will generate an assignment that is 1-2 questions in length. This assignment is for college students so it should be challenging, and take at least 2-5 hours to complete. To complete the assignment the student must have a deep understanding of the topics that will be specified."
 
             user_message += ".\n"
 
@@ -349,7 +349,7 @@ def assignment_form(request):
             if data['programming_language'] == 'no coding':
                 user_message += f" The assignment should not be a coding assignment, therefore no programming languages should be involved."
             if data['programming_language'] == 'other':
-                user_message += f" The specified language is {data['other_language']}."
+                user_message += f" The specified language is {data['other_language']}. The question should require the student to write at least 50 lines of code per question, sometimes requiring more."
             if data['programming_language']:
                 user_message += f"The assignment should be in the programming language specified as {data['programming_language']}."
             if data['total_points']:
@@ -358,13 +358,16 @@ def assignment_form(request):
             if data['fixed_points_per_question']:
                 user_message += "Each question will be worth the same amount of points. Please also make sure to label the amount of points for each questions (# points) where # is number of points assigned to that question."
             if not data['fixed_points_per_question']:
-                user_message += "Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the quiz. "
+                user_message += "Each question will be worth a different amount of points. The points for each question should vary based on the difficulty of the question, but the total points of the collective questions should not exceed the number of points of the assignment. "
 
             user_message += "Please include the number of points each question is worth in the question itself if points were assigned. For example, 'Question 1 (5 Points)'. If you were not specified any points, don't label the points for the questions."
+
 
             if data['constraints']:
                 user_message += f" The constraints for this assignment are {data['constraints']}."
             print('there')
+
+            user_message += "\nThe assignment should clearly describe what the student must do, along with context of the problem. If a coding assignment, give a sceenario that makes the assignment fun, give test cases and explected output and formatting. It must be high detail and explain explicitly what the student must deliver."
             response = send_message_to_openai(user_message)
             answer_key = get_assignment_answer_key(response)
 

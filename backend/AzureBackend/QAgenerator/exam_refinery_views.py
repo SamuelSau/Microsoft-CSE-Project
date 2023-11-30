@@ -57,9 +57,9 @@ def get_variant_answer_key(response):
     }
     data = {
         "messages": [
-            {"role": "system", "content": "You are a highly skilled TA that grades quizzes for educators. Please analyze the quiz below and if and only if the formatting is unusual and not a quiz structure, please generate a total of 3 questions related to any 3 topics from that list. If you are given the questions, please give the correct answers to the respective questions also including if multiple variations were specified."},
-            {"role": "user", "content": "Given the following quiz, provide a correct answer for each question asked. Ensure it is correct, especially for code questions. Do not add any excessive explanation, and do not add any questions that are not present in the quiz. \nThe quiz is as follows:\n" + quiz},
-            {"role": "assistant", "content": "Here is the answer key for the quiz corresponding respectively to each question. The formatting for the response will be: Original Quiz: 1. 2. Variation 1: 1. 2. Variation 2: 1. 2. Where 1 and 2 are the answers to the questions, make sure each answer are numbered that corresponds to that question. Do not include the questions with the answers, just have the answers."}
+            {"role": "system", "content": "You are a highly skilled TA. Analyze the provided quiz. Generate answers for each question in the quiz and its variants. Preserve the original quiz format, especially if it's not multiple-choice. If the quiz is incomplete or unusual, ignore and proceed to create answers for the provided questions. Ensure the answer key matches the question formats without modifications."},
+            {"role": "user", "content": f"Given the following quiz, provide a correct answer for each question. Ensure accuracy, especially for code questions. The quiz is:\n{quiz}"},
+            {"role": "assistant", "content": "Here is the answer key for the quiz, with each answer numbered corresponding to the original and variant questions. Do not include the questions, only the answers."}
         ]
     }
     variantResponse = requests.post(url, headers=headers, json=data)
@@ -67,6 +67,7 @@ def get_variant_answer_key(response):
 
 @csrf_exempt
 def create_quiz_variations(file_content: str, num_variations: int):
+    print(file_content)
     
     url = f"https://{RESOURCE_NAME}.openai.azure.com/openai/deployments/{MODEL_NAME}/chat/completions?api-version=2023-05-15"
 
@@ -77,11 +78,12 @@ def create_quiz_variations(file_content: str, num_variations: int):
 
     data = {
         "messages": [
-            {"role": "system", "content": "You are a helpful assistant that takes previous exams and creates variations as quizzes to be the exact same level of difficulty and same concepts. The order of the questions and difficulty should vary for each student to make it difficult to cheat. Do not provide the answer key here."},
-            {"role": "user", "content": "Keep the formatting the exact same and do not stray too far from what is seen in the quiz. Firstly, create an original quiz then then include the original quiz in the response on top. Also, if any code is written, please surround it with '```' on each side so I can format it properly on the front end. I want the original quiz at the top, with the following number of variations of the quiz. Please make exactly " + str(num_variations) + " variations of the following content:\n\n" + file_content},
-            {"role": "assistant", "content": f"Here are the variations of the quiz, each variation having a title 'Variation #' at the beginning, and all code blocks surrounded by three '`' to indicate it is code. Here is an example of the formatting for the response: Original Quiz: Q1. Q2. Variation 1: Q1. Q2. Variation 2: Q1. Q2. Q1 and Q2 are followed with different questions. Do not include the answer key, only the questions! Please remember to make exactly {str(num_variations)}"}
+            {"role": "system", "content": "You are an assistant tasked with creating quiz variations. Maintain the same level of difficulty and concepts as the original, and ensure the format, especially non-multiple-choice, is preserved. Vary question order in each variation."},
+            {"role": "user", "content": f"Create {str(num_variations)} variations of this quiz. Keep the format identical to the original, which may not be multiple-choice. Surround any code with '```'. Include the original quiz at the top. The original quiz is as follows:\n" + file_content},
+            {"role": "assistant", "content": f"Here are {str(num_variations)} variations of the quiz, each titled 'Variation Number'. The original quiz is included at the top. All code is within '```'. Each variation matches the original quiz in format, question count, difficulty, and concepts covered. No answer key is provided here, only questions."}
         ]
     }
+
 
     response = requests.post(url, headers=headers, json=data)
     response_json = response.json()  # Get the JSON content of the response
@@ -128,10 +130,11 @@ def extract_content_from_file(uploaded_file, file_extension) -> str:
     content = ""
 
     if file_extension == "pdf":
-        # Extract content from PDF
-        pdf_reader = PyPDF2.PdfReader(uploaded_file)
-        for page_num in range(len(pdf_reader.pages)):
-            content += pdf_reader.pages[page_num].extract_text() + "\n"
+        with pdfplumber.open(uploaded_file) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:  # Check if page text is not None or empty
+                    content += page_text + "\n"
     
     #needs to fixing 
     elif file_extension in ["ppt", "pptx"]:
@@ -148,9 +151,9 @@ def extract_content_from_file(uploaded_file, file_extension) -> str:
                     content += shape.text + "\n"
                 
     entities = extract_entities_from_azure(content)    
-    entities_str = '\n'.join([' '.join(phrase_list) for phrase_list in entities])  # Convert list of lists to a string
-    limited_str = limit_tokens_in_string(entities_str,4500)
-    return limited_str
+    entities_str = '\n'.join([' '.join(phrase_list) for phrase_list in entities])
+    limited_str = limit_tokens_in_string(entities_str, 4500)
+    return content
 
 def extract_entities_from_azure(text: str) -> List[List]:
         
