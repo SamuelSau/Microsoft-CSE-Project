@@ -124,9 +124,9 @@ def no_code_quiz_form(request):
             if len(data['question_style']) == 2:
                 user_message += " The quiz should have both short answer and multiple choice questions."
             elif len(data['question_style']) == 1:
-                if 'short_answer' in data['question_style'] or 'multiple_choice' in data['question_style'] :
+                if 'short_answer' in data['question_style'] or 'multiple_choice' in data['question_style']:
                     user_message += f"The style questions present in the quiz should be {data['question_style']} that challenge the student to elaborate on their answer so that it is clear they understand the answer. These can include fill in the blank, short response, etc."
-            
+
             if data['topic_explanation']:
                 user_message += f"The topics for this quiz are {data['topic_explanation']} so ensure that each topic is covered in the quiz."
 
@@ -136,7 +136,6 @@ def no_code_quiz_form(request):
                 user_message += " The questions should be a bit complex and require a bit more thought than first glance."
             elif data['difficulty_level'] == 'advanced':
                 user_message += " The questions should be complex and require a lot of thought."
-
 
             user_message += "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself. For example, don't say 'Question 1: What is the output of the following code? print(1+1) Answer: 2', just say 'Question 1: What is the output of the following code? print(1+1)'. Also do not include any notes from the TA in the quiz. Do not include the answer key."
             user_message += "\n Double check all questions to ensure that they are correct."
@@ -155,7 +154,7 @@ def no_code_quiz_form(request):
 
             if data['total_points']:
                 user_message += f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
-            
+
             print(user_message)
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
@@ -187,13 +186,37 @@ def quiz_form(request):
             if data['programming_language']:
                 user_message += f"The quiz should be in the programming language specified as {data['programming_language']}."
 
-            if data['question_style']:
+            if len(data['question_style']) == 2:
+                user_message += " The quiz should have both short answer and multiple choice questions."
+
+            if 'short_answer' in data['question_style'] or 'multiple_choice' in data['question_style']:
                 user_message += f" The quiz should be in a {data['question_style']} format that ensures that the student is tested on their understanding of syntax and logic."
 
             if data['topic_explanation']:
                 user_message += f" The topics for this quiz are {data['topic_explanation']}. So ensure that each topic is covered in the quiz."
 
-            if data['question_type']:
+            if 'syntax' in data['question_type']:
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+
+            if 'logic' in data['question_type']:
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+
+            if 'bug_fix' in data['question_type']:
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+
+            if 'bug_identification' in data['question_type']:
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+
+            if 'code_analysis' in data['question_type']:
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+
+            if 'code_completion' in data['question_type']:
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+
+            if 'code_output' in data['question_type']:
+                user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
+
+            if 'code_writing' in data['question_type']:
                 user_message += f" The type of questions that can be on this quiz are: {data['question_type']}."
 
             if data['difficulty_level'] == 'elementary':
@@ -228,9 +251,6 @@ def quiz_form(request):
             if data['programming_language'] == 'other':
                 user_message += f" The specified language is {data['other_language']}."
 
-            if data['question_style'] == 'short_answer' or (data['question_style'] == 'multiple_choice' and data['question_style'] == 'short_answer'):
-                user_message += " The types of short answer style questions present in the quiz. The first is questions that give the student a very small snippet of code in the language selected and they must respond with what it will output. The second is questions that ask for a very small snippet of code in the language that fulfils a request."
-
             user_message += "\n In regards to formatting, don't include the type of question in the question itself. For example, don't say 'Question 1 (syntax)', just say 'Question 1'. Also, don't include the answer in the question itself."
             user_message += "\n Double check all questions including the code snippets to ensure that they are correct. "
 
@@ -241,13 +261,17 @@ def quiz_form(request):
                 file_data = limit_tokens_in_string(file_data, 4500) + "\n"
                 print(file_data)
                 user_message += "Attached is a list of topics submitted by a professor:\n" + file_data
-                if data['topic_explanation']:
-                    user_message += "\n\n Analyze these topics and use the topics within that list that are related to the initial topics listed by the professor:",data['topic_explanation'],"to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor or the topics given initially. "
                 
-                else:
+                print(data['topic_explanation'])
+                print(type(data['topic_explanation']))
+                if len(data['topic_explanation']) != 0:
+                    user_message += f"\n\n Analyze these topics and use the topics within that list that are related to the initial topics listed by the professor: {data['topic_explanation']} to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor or the topics given initially."
+
+                if len(data['topic_explanation']) == 0:
                     user_message += "\n\n Analyze these topics and use the topics within that list that are related to the initial topics listed by the professor to generate a quiz, do not deviate by creating random questions that do not relate to the list provided by the professor or the topics given initially. "
 
                 user_message += "Ensure that the student would only be able to do this quiz if they read and understood the topics from the list provided by the professor."
+                print(user_message)
 
             if data['total_points']:
                 user_message += f"The total points for this quiz is {data['total_points']}. Please show the total points at the top of the quiz."
@@ -264,7 +288,7 @@ def quiz_form(request):
             if data['num_questions']:
                 user_message += f" The quiz should have exactly {data['num_questions']} questions, do not go over this number."
 
-
+            print(user_message)
             response = send_message_to_openai(user_message)
             answer_key = get_quiz_answer_key(response)
             response["type"] = "quiz"

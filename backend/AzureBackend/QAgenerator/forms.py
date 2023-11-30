@@ -24,11 +24,11 @@ class QuizForm(forms.Form):
     )
 
     #Free form text
-    topic_explanation = forms.CharField(max_length=100, required=False)
+    topic_explanation = forms.CharField(max_length=10000, required=False)
     
     # Select dropdowns
     programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select, required=False)
-    other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'})) #fill out if different language than what's shown
+    #other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'})) #fill out if different language than what's shown
 
     difficulty_level = forms.ChoiceField(choices=DIFFICULTY_CHOICES, widget=forms.Select, required=False)
     num_questions = forms.IntegerField(min_value=1, max_value=50, required=False)
@@ -45,7 +45,7 @@ class QuizForm(forms.Form):
 class AssignmentForm(forms.Form):
     LANGUAGE_CHOICES = (("python", "Python"), ("java", "Java"), ("c", "C"), ("c++", "C++"), ("other", "Other"), ('no coding', 'No coding'))
 
-    topic_explanation = forms.CharField(max_length=100, required=False)
+    topic_explanation = forms.CharField(max_length=10000, required=False)
     programming_language = forms.ChoiceField(choices=LANGUAGE_CHOICES, widget=forms.Select, required=False)
     
     other_language = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'placeholder': 'Specify other language'}))
